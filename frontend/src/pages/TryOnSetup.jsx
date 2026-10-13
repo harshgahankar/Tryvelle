@@ -1,14 +1,35 @@
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { products } from "../data/products";
+import { api } from "../lib/api";
 
 export default function TryOnSetup() {
   const [params] = useSearchParams();
   const slug = params.get("product") ?? "everyday-cotton-tee";
-  const p = products.find((x) => x.slug === slug) ?? products[0];
+  const [p, setP] = useState(null);
+  const [failed, setFailed] = useState(false);
   const nav = useNavigate();
+
+  useEffect(() => {
+    let live = true;
+    api.product(slug).then((d) => live && setP(d)).catch(() => live && setFailed(true));
+    return () => { live = false; };
+  }, [slug]);
+
+  if (failed) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-space-2xl text-center" role="alert">
+        <p className="font-headline-sm">Garment unavailable</p>
+        <Link to="/shop" className="underline">Back to shop</Link>
+      </div>
+    );
+  }
+  if (!p) {
+    return <div className="max-w-5xl mx-auto px-4 py-space-xl" aria-busy="true"><div className="h-64 rounded-2xl bg-surface-container animate-pulse" /></div>;
+  }
+  const photo = p.photos[0]?.url;
   return (
     <div className="max-w-5xl mx-auto px-margin-tablet py-space-xl w-full">
-      <p className="font-caption text-secondary"><Link to={`/product/${p.slug}`} className="underline">← Back to {p.name}</Link> · Step 1 of 2 — Positioning</p>
+      <p className="font-caption text-secondary"><Link to={`/product/${p.slug}`} className="underline">← Back to {p.title}</Link> · Step 1 of 2 — Positioning</p>
       <div className="mt-4 rounded-2xl bg-surface border border-border overflow-hidden">
         <div className="px-6 py-4 bg-surface-container-low flex items-center gap-3">
           <span className="material-symbols-outlined text-primary-container">videocam</span>
@@ -17,8 +38,8 @@ export default function TryOnSetup() {
         <div className="grid md:grid-cols-2 gap-6 p-6">
           <div className="space-y-4">
             <div className="flex gap-3 p-4 rounded-xl bg-surface-container-low">
-              <img src={p.img} alt={p.name} className="w-16 h-20 rounded-lg object-cover" />
-              <div><p className="font-caption uppercase text-secondary font-semibold">Selected garment</p><p className="font-product-title font-semibold">{p.name}</p><p className="font-caption text-secondary">{p.fabric}</p></div>
+              {photo && <img src={photo} alt={p.title} className="w-16 h-20 rounded-lg object-cover" />}
+              <div><p className="font-caption uppercase text-secondary font-semibold">Selected garment</p><p className="font-product-title font-semibold">{p.title}</p><p className="font-caption text-secondary">{p.category.name}{p.try_on_available ? " · Try-on ready" : ""}</p></div>
             </div>
             <div className="p-4 rounded-xl bg-[#121212] text-white text-center">
               <svg viewBox="0 0 300 300" className="w-full max-w-[260px] mx-auto" fill="none" stroke="currentColor" strokeWidth="1.5">
