@@ -12,7 +12,7 @@ export default function Header() {
       <div className="h-20 max-w-7xl mx-auto px-margin-tablet lg:px-margin-desktop flex items-center justify-between gap-space-md">
         <div className="flex items-center gap-space-xl shrink-0">
           <Link to="/" className="flex items-center gap-space-xs">
-            <span className="font-headline-sm uppercase tracking-tight text-on-surface">Clothing Studio</span>
+            <span className="font-headline-sm uppercase tracking-tight text-on-surface">Tryvelle</span>
           </Link>
           <nav className="hidden lg:flex items-center gap-space-lg">
             <NavLink to="/#new-arrivals" className="font-label-md text-on-surface-variant hover:text-on-surface py-2">New arrivals</NavLink>

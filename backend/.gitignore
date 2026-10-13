@@ -1,4 +1,6 @@
 .env
 dev.db
-media/
+# Runtime uploads stay local; committed seed photos are the exception.
+media/*
+!media/sample/
 __pycache__/

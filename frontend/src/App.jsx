@@ -34,7 +34,7 @@ function CameraLayout() {
   return (
     <div className="bg-camera-surface min-h-screen flex flex-col">
       <div className="h-20 flex items-center px-6 border-b border-white/10">
-        <span className="font-headline-sm uppercase text-white">Clothing Studio · Try-On</span>
+        <span className="font-headline-sm uppercase text-white">Tryvelle · Try-On</span>
       </div>
       <Outlet />
     </div>

@@ -13,14 +13,15 @@ from app.models.models import (
 
 SAMPLE_TAG = "sample"
 
-# SAMPLE photo URLs (same publicly-viewable placeholders the React mock uses).
-# Pending licensed photography; replace with owned asset keys before release.
+# Licensed catalog photos (Unsplash License: free commercial use, no attribution
+# required — https://unsplash.com/license). Served from local /media (no hotlink).
+# Prices/stock/sizes remain SAMPLE supplier placeholders.
 PHOTOS = {
-    "everyday-cotton-tee": "https://lh3.googleusercontent.com/aida-public/AB6AXuD_RF46PpwiNCSN7uCP9ytr1ZZZ_6r59roJmH5tj2233SReX723EhKhzkk0WjzmGGZcD4zDy6Le7ZBtJXEV_BgzECiox1msjsQf16DqKZbnu5fe2UHEFpgOUdF8wvYIk0ikBfzhboAtjyxcYjpzcGIADxvY8N_mY-7Q4tZv13JQIWu9fpAgIaKEwjXgWI6Xf_KCwTd3rwc8HUqltJy8h3cqX6wlUNm7ISr8uMFdbrQmfA14mnafNnKy",
-    "washed-linen-tee": "https://lh3.googleusercontent.com/aida-public/AB6AXuDuJBpNutYzdbMqj_MwxzQv5UKK-Pe91mRjA0rMyu75w2-3_KOjpEzS0rH15NE_PCZb5DBEL75hi0b25X_Dwk9mMP66IFQhdS0-mzGodi8YjKfI43t_TWRnB55ZO_pQyqXmguwKIVxOdUbRzIHYoDF2Cl4zJhX0yzEaP7ZPhCr8P19-o_Wdnxdp3V_ByKMI2xoLCdFnHnjiuWaSXJm7jBNW3IYRo_QMZQM8SR98pKrx3jgevyx92Hz_",
-    "structured-boxy-overshirt": "https://lh3.googleusercontent.com/aida-public/AB6AXuD_NtvNIjdh_OfLCEHsetAiWT44VXtEinzTRRfxZkIBox8eFe1_0HWDjoVG6hYVVlWh9E4URJm8eBjuDGKLJbsQOS10qWiZNjlg7LxJXJLunGv8P_D5wAmAKrcK2s1H0ldxH3gyL8xF9H25dPPhIBCrMfGz_wVkKpiEIpfaH8IpoQ4x6rOOwlacmIFtvIEMWVXtLEs6vQX3lRqRJcA2gH0tY2onBIX6wG543MUcyMk2Yqvd-Ab6FdiP",
-    "heavyweight-relaxed-crewneck": "https://lh3.googleusercontent.com/aida-public/AB6AXuAOLdwRwrPppkIHmE6hOdNy01n48Tb6LR3IhqbKk3Wlo5V30YVai78AbG0OcPyg9LzK5ZktOF3uvIqzwSKQWH2yni4JRw8jr9pzfxQmH1BYwciu0YineQqswlR3xfQRQrIcwJJrP7bAsBa9NVXSvYWdpomBXg9UenAKbHeJR7fGAvHonTjZ-PRZKix49d8mjJ-JYdiGY-2XcJvN1T9zF2brGP3_Mlk2XNg0jnciCyQDgY1ZgDjgy3D7",
-    "pleated-twill-trouser": "https://lh3.googleusercontent.com/aida-public/AB6AXuBv39_4i58AosQQrD0nlnnLlV2zwc9tAOdc0IPoy0q3wybeJ29FkokWK3OfXK7aBUF1avGymOyYoLRrTbVZFeVxKvqrVMHPt5-9NXS3dzyswCljpp5f3os--WUbKmqPDdM_oOWB9j0_TLuyycZIrC1SyIWOmY431vrgm1sCiwOlyrEXaUkb9p78nKQEehfPWnk60MRtjlrAe_Iq4ivazJXzYLhml--dZSqAlGTG3rV-nP3NWmUK0UuE",
+    "everyday-cotton-tee": "sample/everyday-cotton-tee.jpg",
+    "washed-linen-tee": "sample/washed-linen-tee.jpg",
+    "structured-boxy-overshirt": "sample/structured-boxy-overshirt.jpg",
+    "heavyweight-relaxed-crewneck": "sample/heavyweight-relaxed-crewneck.jpg",
+    "pleated-twill-trouser": "sample/pleated-twill-trouser.jpg",
 }
 
 # One SAMPLE published asset so try-on availability is demonstrable end to end.
@@ -149,7 +150,7 @@ def seed_all(db) -> dict:
                 if db.query(ProductImage).filter_by(product_id=prod.id).count() == 0:
                     db.add(ProductImage(product_id=prod.id, product_color_id=None,
                                          asset_key=PHOTOS.get(p["slug"], f"{SAMPLE_TAG}/{p['slug']}/front.jpg"),
-                                         alt_text=f"SAMPLE photo: {p['title']}", sort_order=0))
+                                         alt_text=f"{p['title']} (photo: Unsplash, free commercial use)", sort_order=0))
     db.commit()
     return counts
 
