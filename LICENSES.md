@@ -17,7 +17,8 @@
 
 | Item | Source / terms |
 |---|---|
-| Pose Landmarker Lite model | Google MediaPipe, Apache-2.0 model terms; fetched at runtime from `storage.googleapis.com` (see `VITE_POSE_MODEL_URL`). No training, no vendor lock-in beyond the pinned file. |
+| Pose Landmarker Lite model | Google MediaPipe, Apache-2.0; **vendored** at `frontend/public/vendor/models/` (no runtime fetch). Re-verify on upgrades. |
+| MediaPipe WASM runtime | Apache-2.0, from `@mediapipe/tasks-vision` npm package; **vendored** standard build at `frontend/public/vendor/mediapipe-wasm/` (no runtime CDN). Ancient browsers without WASM SIMD hit the model-failure fallback by design. |
 | Manrope / Inter fonts | SIL Open Font License 1.1 (Google Fonts) |
 | Catalog photos (`backend/media/sample/`, served via `/media`) | Unsplash License — free use incl. commercial, no attribution required (https://unsplash.com/license). Files: everyday-cotton-tee.jpg (photo-1521572163474), washed-linen-tee.jpg (photo-1620799140408), structured-boxy-overshirt.jpg (photo-1596755094514), heavyweight-relaxed-crewneck.jpg (photo-1556821840), pleated-twill-trouser.jpg (photo-1541099649105). Photographer credits unrecoverable from CDN URLs — credit them if identified. Content not visually verified by the developers; owner to confirm. |
 | Prices / stock / sizes / charts | **SAMPLE supplier placeholders** (owner confirmed 14 Oct 2026). Replace with real supplier data before launch. |

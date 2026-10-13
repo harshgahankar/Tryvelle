@@ -2,11 +2,11 @@
 // (one request in flight, monotonic timestamps), disposable.
 import { FilesetResolver, PoseLandmarker } from "@mediapipe/tasks-vision";
 
-// Pinned defaults so the prototype works with no .env file.
-// Keep in sync with package.json (@mediapipe/tasks-vision) — never use @latest.
-const DEFAULT_WASM_BASE = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.0/wasm";
-const DEFAULT_MODEL_URL =
-  "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task";
+// Self-hosted defaults (public/vendor, Apache-2.0, recorded in LICENSES.md).
+// Served from our own origin: no runtime CDN dependency. Env vars override
+// (e.g. staging CDN). Keep WASM matched to package.json (@mediapipe/tasks-vision).
+const DEFAULT_WASM_BASE = "/vendor/mediapipe-wasm";
+const DEFAULT_MODEL_URL = "/vendor/models/pose_landmarker_lite.task";
 
 export async function createPoseAdapter({ modelUrl, wasmBase, numPoses = 1 } = {}) {
   const MODEL_URL = modelUrl || import.meta.env.VITE_POSE_MODEL_URL || DEFAULT_MODEL_URL;
