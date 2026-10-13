@@ -7,6 +7,9 @@ documents/
 # Local virtualenv
 .venv/
 
+# Local-only personal notes (never pushed)
+Note.txt
+
 # Secrets / local env
 .env
 
