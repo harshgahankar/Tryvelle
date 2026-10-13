@@ -65,14 +65,19 @@ def create_order(body: OrderCreate, db: Session = Depends(get_db),
 
 def order_detail(db: Session, order: Order) -> dict:
     items = db.query(OrderItem).filter_by(order_id=order.id).all()
-    return {**OrderOut(id=order.id, order_number=order.order_number, status=order.status,
-                       currency=order.currency, subtotal_minor=order.subtotal_minor,
-                       shipping_minor=order.shipping_minor, total_minor=order.total_minor).model_dump(),
-            "items": [{"sku": i.sku_snapshot, "title": i.title_snapshot, "color": i.color_snapshot,
-                       "size": i.size_snapshot, "unit_price_minor": i.unit_price_minor,
-                       "quantity": i.quantity} for i in items],
-            "address": {k: v for k, v in order.address_snapshot_json.items() if k != "idem_sig"},
-            "created_at": order.created_at.isoformat()}
+    out = {**OrderOut(id=order.id, order_number=order.order_number, status=order.status,
+                      currency=order.currency, subtotal_minor=order.subtotal_minor,
+                      shipping_minor=order.shipping_minor, total_minor=order.total_minor).model_dump(),
+           "items": [{"sku": i.sku_snapshot, "title": i.title_snapshot, "color": i.color_snapshot,
+                      "size": i.size_snapshot, "unit_price_minor": i.unit_price_minor,
+                      "quantity": i.quantity} for i in items],
+           "address": {k: v for k, v in order.address_snapshot_json.items() if k != "idem_sig"},
+           "created_at": order.created_at.isoformat()}
+    if order.status == "pending_payment" and order.razorpay_order_id:
+        from app.core.config import get_settings
+        out["razorpay_order_id"] = order.razorpay_order_id
+        out["key_id"] = get_settings().RAZORPAY_KEY_ID  # publishable key only
+    return out
 
 
 @orders_router.get("/me/orders")

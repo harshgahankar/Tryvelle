@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     DEMO_MODE: bool = True
     SETUP_ADMIN_EMAIL: str = ""
     SETUP_ADMIN_PASSWORD: str = ""
+    RAZORPAY_KEY_ID: str = ""
+    RAZORPAY_KEY_SECRET: str = ""
+    RAZORPAY_WEBHOOK_SECRET: str = ""
 
 
 @lru_cache

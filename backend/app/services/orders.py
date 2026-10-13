@@ -11,7 +11,7 @@ from app.models.models import (
 )
 
 ORDER_PREFIX = "DEMO-"
-CANCELLABLE = ("demo_placed", "demo_confirmed")
+CANCELLABLE = ("demo_placed", "demo_confirmed", "paid")  # paid cancel = manual refund via gateway
 
 
 class OrderError(Exception):
@@ -190,7 +190,9 @@ def cancel_order(db: Session, user_id, order_id) -> dict:
 def transition_order(db: Session, actor_id, order_id, status: str) -> dict:
     allowed = {"demo_placed": ("demo_confirmed", "demo_cancelled"),
                "demo_confirmed": ("demo_completed", "demo_cancelled"),
-               "demo_completed": (), "demo_cancelled": ()}
+               "paid": ("demo_confirmed", "demo_cancelled"),
+               "pending_payment": ("demo_cancelled",),
+               "demo_completed": (), "demo_cancelled": (), "payment_failed": ("demo_cancelled",)}
     try:
         oid = uuid.UUID(str(order_id))
     except ValueError:

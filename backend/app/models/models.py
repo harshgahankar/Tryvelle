@@ -194,6 +194,8 @@ class Order(Base):
     total_minor: Mapped[int] = mapped_column(Integer, nullable=False)
     address_snapshot_json: Mapped[dict] = mapped_column(JSON, nullable=False)
     idempotency_key: Mapped[str] = mapped_column(String(64), nullable=False)
+    razorpay_order_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = created_at()
     items: Mapped[list["OrderItem"]] = relationship(back_populates="order", cascade="all, delete-orphan")
     __table_args__ = (

@@ -17,7 +17,17 @@ export default function Checkout() {
   const [addr, setAddr] = useState({ recipient: "", line1: "", city: "", postal_code: "", country: "IN", phone: "" });
   const [placing, setPlacing] = useState(false);
   const [placeError, setPlaceError] = useState("");
+  const [payMethod, setPayMethod] = useState("demo");
   const keyRef = useRef(null);
+
+  const loadRazorpay = () => new Promise((resolve, reject) => {
+    if (window.Razorpay) return resolve();
+    const s = document.createElement("script");
+    s.src = "https://checkout.razorpay.com/v1/checkout.js";
+    s.onload = resolve;
+    s.onerror = () => reject(new Error("Razorpay script failed to load. Check connection and retry."));
+    document.body.appendChild(s);
+  });
 
   useEffect(() => {
     let live = true;
@@ -55,6 +65,7 @@ export default function Checkout() {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (payMethod === "razorpay") return submitRazorpay();
     if (placing || !validation || !addressId) return;
     setPlacing(true);
     setPlaceError("");
@@ -74,6 +85,55 @@ export default function Checkout() {
         setValidation((v) => ({ ...v, ...err.validated }));
         keyRef.current = crypto.randomUUID();
         setPlaceError("Prices or stock changed — review the updated totals, then place again.");
+      } else {
+        setPlaceError(err.message);
+      }
+    } finally {
+      setPlacing(false);
+    }
+  };
+
+  const submitRazorpay = async () => {
+    if (placing || !validation || !addressId) return;
+    setPlacing(true);
+    setPlaceError("");
+    if (!keyRef.current) keyRef.current = crypto.randomUUID();
+    try {
+      await loadRazorpay();
+      const items = validation.items.filter((l) => !l.error).map((l) => ({ variant_id: l.variant_id, quantity: l.quantity }));
+      const intent = await authedApi(csrf).post("/orders/razorpay-intent", {
+        items, address_id: addressId, expected_total_minor: validation.total_minor,
+      }, { idempotencyKey: keyRef.current });
+      await new Promise((resolve, reject) => {
+        const rzp = new window.Razorpay({
+          key: intent.key_id,
+          amount: intent.total_minor,
+          currency: "INR",
+          name: "Tryvelle",
+          description: `Order ${intent.order_number} (TEST MODE)`,
+          order_id: intent.razorpay_order_id,
+          handler: (resp) => resolve(resp),
+          modal: { ondismiss: () => reject(new Error("Payment window closed. Your order stays pending — retry from My orders.")) },
+          theme: { color: "#AF2424" },
+        });
+        rzp.on("payment.failed", (r) => reject(new Error(r.error?.description || "Payment failed.")));
+        rzp.open();
+      }).then(async (resp) => {
+        await authedApi(csrf).post("/orders/verify", {
+          order_id: intent.id,
+          razorpay_order_id: resp.razorpay_order_id,
+          razorpay_payment_id: resp.razorpay_payment_id,
+          razorpay_signature: resp.razorpay_signature,
+        });
+        clearCart();
+        const full = await authedApi(csrf).get(`/me/orders/${intent.id}`);
+        nav(`/confirmation/${intent.id}`, { state: full });
+      });
+    } catch (err) {
+      if (err.code === "PRICE_CHANGED") {
+        keyRef.current = crypto.randomUUID();
+        setValidation((v) => ({ ...v, ...(err.validated ? { subtotal_minor: err.validated.subtotal_minor, total_minor: err.validated.total_minor } : {}) }));
+        setPlaceError("Totals changed — review and pay again.");
       } else {
         setPlaceError(err.message);
       }
@@ -120,13 +180,20 @@ export default function Checkout() {
                   <button onClick={saveAddress} className="h-11 rounded-lg border font-label-md">Save address</button>
                 </div>}
           </section>
-          <section className="p-5 bg-surface border rounded-xl">
-            <h3 className="font-headline-sm">2 · Payment simulation</h3>
-            <p className="font-body-sm text-secondary">No cards. Records a demo order with status <em>demo_placed — no charge</em>.</p>
+          <section className="p-5 bg-surface border rounded-xl space-y-3">
+            <h3 className="font-headline-sm">2 · Payment</h3>
+            <label className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer ${payMethod === "demo" ? "border-on-surface bg-surface-container-low" : ""}`}>
+              <input type="radio" checked={payMethod === "demo"} onChange={() => setPayMethod("demo")} />
+              <span className="font-body-sm">Demo order — no charge (<em>demo_placed</em>)</span>
+            </label>
+            <label className={`flex items-center gap-2 p-3 rounded-lg border cursor-pointer ${payMethod === "razorpay" ? "border-on-surface bg-surface-container-low" : ""}`}>
+              <input type="radio" checked={payMethod === "razorpay"} onChange={() => setPayMethod("razorpay")} />
+              <span className="font-body-sm">Pay online — Razorpay <strong>TEST MODE</strong> (UPI/cards, no real money)</span>
+            </label>
           </section>
           {placeError && <p className="font-body-sm text-danger" role="alert">{placeError}</p>}
           <button disabled={placing || !addressId} className="w-full h-12 rounded-lg bg-primary-container text-white font-label-md font-semibold disabled:opacity-50">
-            {placing ? "Placing… (do not double-click)" : `Place demo order — ${minorToInr(validation.total_minor)}`}
+            {placing ? "Processing… (do not double-click)" : payMethod === "razorpay" ? `Pay ${minorToInr(validation.total_minor)} (test)` : `Place demo order — ${minorToInr(validation.total_minor)}`}
           </button>
         </form>
         <aside className="lg:col-span-5">
