@@ -117,3 +117,22 @@ def test_forgot_generic_and_reset_one_use(client):
     # Unknown email returns the same shape (no enumeration).
     assert client.post("/api/v1/auth/forgot-password",
                        json={"email": "ghost@example.com"}).json()["ok"] is True
+
+
+def test_session_cookie_is_httponly(client):
+    r = register(client)
+    cookie = r.headers.get("set-cookie", "")
+    assert "session=" in cookie and "HttpOnly" in cookie
+
+
+def test_disallowed_origin_rejected(client):
+    register(client)
+    h = auth_headers(client)
+    r = client.get("/api/v1/auth/me", headers={**h, "Origin": "https://evil.test"})
+    assert r.status_code == 403 and r.json()["error"]["code"] == "FORBIDDEN"
+
+
+def test_security_headers_present(client):
+    r = client.get("/api/v1/health")
+    assert r.headers["X-Content-Type-Options"] == "nosniff"
+    assert r.headers["X-Frame-Options"] == "DENY"
