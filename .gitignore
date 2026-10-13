@@ -1,0 +1,9 @@
+# Local-only prototype source (superseded by frontend/ React app — do not commit)
+frontend.html
+
+# Secrets / local env
+.env
+
+# Dependencies / build output (also covered by frontend/.gitignore)
+node_modules/
+dist/
