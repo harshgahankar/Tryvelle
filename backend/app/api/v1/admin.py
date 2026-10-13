@@ -4,13 +4,14 @@ import uuid
 
 from fastapi import APIRouter, Cookie, Depends, File, Form, Header, UploadFile
 from PIL import Image, UnidentifiedImageError
+from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
 
 from app.api.errors import error
 from app.core.deps import check_csrf, get_current_user, require_admin
 from app.db import get_db
 from app.models.models import (
-    AdminAuditEvent, Category, Product, ProductColor, ProductImage,
+    AdminAuditEvent, Category, Order, OrderItem, Product, ProductColor, ProductImage,
     ProductVariant, StockMovement, TryOnAsset,
 )
 from app.schemas.admin import (
@@ -350,3 +351,36 @@ def admin_patch_asset(asset_id: str, body: AssetMeta, db: Session = Depends(get_
         audit(db, user.id, "try_on_asset", aid, "publish")
     db.commit()
     return {"asset_id": rec.id, "status": rec.status}
+
+class StatusIn(BaseModel):
+    status: str
+
+
+@router.get("/admin/orders")
+def admin_list_orders(page: int = 1, page_size: int = 20, db: Session = Depends(get_db),
+                      user=Depends(get_current_user)):
+    err = admin(user)
+    if err:
+        return err
+    page, page_size = max(1, page), max(1, min(page_size, 100))
+    q = db.query(Order).order_by(Order.created_at.desc())
+    total = q.count()
+    items = [{"id": o.id, "order_number": o.order_number, "status": o.status,
+              "total_minor": o.total_minor, "created_at": o.created_at.isoformat()}
+             for o in q.offset((page - 1) * page_size).limit(page_size).all()]
+    return {"items": items, "page": page, "page_size": page_size, "total": total}
+
+
+@router.patch("/admin/orders/{order_id}/status")
+def admin_order_status(order_id: str, body: StatusIn, db: Session = Depends(get_db),
+                       session: str | None = Cookie(default=None),
+                       x_csrf_token: str | None = Header(default=None),
+                       user=Depends(get_current_user)):
+    from app.services.orders import OrderError, transition_order
+    err = admin(user) or csrf(db, session, x_csrf_token)
+    if err:
+        return err
+    try:
+        return transition_order(db, user.id, order_id, body.status)
+    except OrderError as e:
+        return error(e.code, str(e), e.status, e.fields)

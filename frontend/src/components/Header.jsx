@@ -43,6 +43,7 @@ export default function Header() {
           {user ? (
             <>
               {user.role === "admin" && <Link to="/admin/products" className="hidden sm:inline-flex h-10 px-3 items-center font-label-md underline">Admin</Link>}
+              <Link to="/account/orders" className="hidden sm:inline font-caption underline">Orders</Link>
               <span className="hidden sm:inline font-caption text-secondary max-w-24 truncate">{user.name}</span>
               <button onClick={logout} className="h-10 px-3 rounded-lg border font-label-md text-[14px]">Logout</button>
             </>
