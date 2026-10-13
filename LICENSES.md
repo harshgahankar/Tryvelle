@@ -21,7 +21,7 @@
 | Manrope / Inter fonts | SIL Open Font License 1.1 (Google Fonts) |
 | Catalog photos (`backend/media/sample/`, served via `/media`) | Unsplash License — free use incl. commercial, no attribution required (https://unsplash.com/license). Files: everyday-cotton-tee.jpg (photo-1521572163474), washed-linen-tee.jpg (photo-1620799140408), structured-boxy-overshirt.jpg (photo-1596755094514), heavyweight-relaxed-crewneck.jpg (photo-1556821840), pleated-twill-trouser.jpg (photo-1541099649105). Photographer credits unrecoverable from CDN URLs — credit them if identified. Content not visually verified by the developers; owner to confirm. |
 | Prices / stock / sizes / charts | **SAMPLE supplier placeholders** (owner confirmed 14 Oct 2026). Replace with real supplier data before launch. |
-| Try-on garment PNGs | None shipped. Upload path requires admin-provided transparent PNGs; record each asset's source + consent in the admin audit trail. |
+| Owner-supplied garment PNGs (`backend/media/sample/*.png`, 5 Kurti files) | All rights with the store owner; do NOT redistribute. Anchors measured from alpha masks (wearer-anatomy convention), draft pending visual confirmation. |
 
 ## Policy
 

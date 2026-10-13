@@ -40,13 +40,13 @@ def test_categories(client):
     r = client.get("/api/v1/categories")
     assert r.status_code == 200
     body = r.json()
-    assert body["total"] == 4 and len(body["items"]) == 4
+    assert body["total"] == 5 and len(body["items"]) == 5
 
 
 def test_list_pagination_and_shape(client):
     r = client.get("/api/v1/products", params={"page_size": 2})
     body = r.json()
-    assert (body["page"], body["page_size"], body["total"]) == (1, 2, 5)
+    assert (body["page"], body["page_size"], body["total"]) == (1, 2, 10)
     item = body["items"][0]
     assert {"slug", "title", "min_price_minor", "colors", "photos", "try_on_available"} <= set(item)
     assert isinstance(item["min_price_minor"], int)
