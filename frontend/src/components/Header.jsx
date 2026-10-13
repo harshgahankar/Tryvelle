@@ -1,8 +1,10 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useShop } from "../store/ShopContext";
+import { useAuth } from "../store/AuthContext";
 
 export default function Header() {
   const { cart } = useShop();
+  const { user, logout } = useAuth();
   const nav = useNavigate();
   const count = cart.reduce((s, c) => s + c.qty, 0);
   return (
@@ -30,7 +32,7 @@ export default function Header() {
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Link to="/shop" aria-label="Wishlist" className="p-2 text-on-surface flex items-center"><span className="material-symbols-outlined text-[24px]">favorite</span></Link>
+          <Link to="/wishlist" aria-label="Wishlist" className="p-2 text-on-surface flex items-center"><span className="material-symbols-outlined text-[24px]">favorite</span></Link>
           <Link to="/cart" aria-label="Shopping Bag" className="p-2 text-on-surface flex items-center relative">
             <span className="material-symbols-outlined text-[24px]">shopping_bag</span>
             {count > 0 && (
@@ -38,6 +40,15 @@ export default function Header() {
             )}
           </Link>
           <div className="h-5 w-[1px] bg-border mx-1 hidden sm:block" />
+          {user ? (
+            <>
+              {user.role === "admin" && <Link to="/admin/products" className="hidden sm:inline-flex h-10 px-3 items-center font-label-md underline">Admin</Link>}
+              <span className="hidden sm:inline font-caption text-secondary max-w-24 truncate">{user.name}</span>
+              <button onClick={logout} className="h-10 px-3 rounded-lg border font-label-md text-[14px]">Logout</button>
+            </>
+          ) : (
+            <Link to="/login" className="hidden sm:inline-flex h-10 px-4 items-center rounded-lg bg-on-surface text-surface font-label-md text-[14px] font-semibold">Login</Link>
+          )}
           <Link to="/checkout" className="hidden sm:inline-flex h-10 px-4 items-center rounded-lg bg-on-surface text-surface font-label-md text-[14px] font-semibold">Checkout</Link>
         </div>
       </div>

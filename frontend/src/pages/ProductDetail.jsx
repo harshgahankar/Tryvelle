@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { api, minorToInr } from "../lib/api";
+import { useAuth } from "../store/AuthContext";
 import { useShop } from "../store/ShopContext";
 
 export default function ProductDetail() {
@@ -12,7 +13,9 @@ export default function ProductDetail() {
   const [size, setSize] = useState(null);
   const [chartOpen, setChartOpen] = useState(false);
   const [added, setAdded] = useState(false);
+  const [saved, setSaved] = useState(false);
   const { addToCart } = useShop();
+  const { user, authed } = useAuth();
   const nav = useNavigate();
 
   useEffect(() => {
@@ -116,6 +119,11 @@ export default function ProductDetail() {
                 <p className="font-caption text-secondary border rounded-lg p-3">Try-on not available for this colorway (no published asset).</p>
               )}
               <p className="font-caption text-secondary">Preview how this looks on you. This view does not measure size or guarantee fit.</p>
+              {user && (
+                <button onClick={async () => { await authed(`/me/wishlist/${p.id}`, { method: "PUT" }); setSaved(true); setTimeout(() => setSaved(false), 2000); }} className="font-caption underline text-left">
+                  {saved ? "Saved to wishlist ✓" : "♡ Save to wishlist"}
+                </button>
+              )}
             </div>
             <div className="divide-y border rounded-xl bg-surface">
               {[["Shipping & returns", "Demo storefront — no shipment. Returns simulated."], ["Privacy", "Camera processed on-device, never uploaded."]].map(([t, d]) => (

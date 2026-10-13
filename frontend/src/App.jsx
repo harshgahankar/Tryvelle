@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { ShopProvider } from "./store/ShopContext";
+import { AuthProvider } from "./store/AuthContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -11,6 +12,9 @@ import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import PrototypeTryOn from "./pages/PrototypeTryOn";
+import { Login, Register, ForgotPassword, ResetPassword } from "./pages/Auth";
+import Wishlist from "./pages/Wishlist";
+import AdminProducts from "./pages/AdminProducts";
 
 function StorefrontLayout() {
   return (
@@ -38,6 +42,7 @@ function CameraLayout() {
 export default function App() {
   return (
     <ShopProvider>
+      <AuthProvider>
       <BrowserRouter>
         <Routes>
           <Route element={<StorefrontLayout />}>
@@ -49,6 +54,12 @@ export default function App() {
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/confirmation/:id" element={<OrderConfirmation />} />
             <Route path="/prototype/try-on" element={<PrototypeTryOn />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/admin/products" element={<AdminProducts />} />
           </Route>
           <Route element={<CameraLayout />}>
             <Route path="/try-on/live" element={<LiveTryOn />} />
@@ -56,6 +67,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      </AuthProvider>
     </ShopProvider>
   );
 }

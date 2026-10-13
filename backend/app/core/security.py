@@ -1,17 +1,19 @@
-"""Password hashing + opaque token helpers. No camera data ever touches this module."""
+"""Password hashing (bcrypt) + opaque token hashing (SHA-256)."""
+import hashlib
 import secrets
 
-from passlib.context import CryptContext
-
-_pwd = CryptContext(schemes=["bcrypt"], deprecated="auto")
+import bcrypt
 
 
 def hash_password(password: str) -> str:
-    return _pwd.hash(password)
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
 def verify_password(password: str, password_hash: str) -> bool:
-    return _pwd.verify(password, password_hash)
+    try:
+        return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
+    except (ValueError, TypeError):
+        return False
 
 
 def new_token(bytes_: int = 32) -> str:
@@ -20,4 +22,4 @@ def new_token(bytes_: int = 32) -> str:
 
 def hash_token(token: str) -> str:
     # Server stores hashes only; session/CSRF/reset tokens are opaque randoms.
-    return _pwd.hash(token)
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
