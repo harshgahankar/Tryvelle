@@ -1,0 +1,4 @@
+.env
+dev.db
+media/
+__pycache__/

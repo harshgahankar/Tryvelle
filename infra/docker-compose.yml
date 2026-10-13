@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: tryon
+      POSTGRES_PASSWORD: tryon
+      POSTGRES_DB: tryon
+    ports:
+      - "5432:5432"
+    volumes:
+      - tryon-pgdata:/var/lib/postgresql/data
+volumes:
+  tryon-pgdata:

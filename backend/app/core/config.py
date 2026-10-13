@@ -1,0 +1,21 @@
+from functools import lru_cache
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+    DATABASE_URL: str = "sqlite:///./dev.db"
+    ALLOWED_WEB_ORIGINS: str = "http://localhost:5173"
+    SESSION_TTL_SECONDS: int = 1209600
+    COOKIE_SECURE: bool = False
+    STORAGE_BACKEND: str = "local"
+    STORAGE_LOCAL_DIR: str = "./media"
+    DEMO_MODE: bool = True
+    SETUP_ADMIN_EMAIL: str = ""
+    SETUP_ADMIN_PASSWORD: str = ""
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()

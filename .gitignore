@@ -1,6 +1,12 @@
 # Local-only prototype source (superseded by frontend/ React app — do not commit)
 frontend.html
 
+# Local-only spec docs (never pushed)
+documents/
+
+# Local virtualenv
+.venv/
+
 # Secrets / local env
 .env
 
