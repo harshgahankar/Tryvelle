@@ -98,6 +98,25 @@ export const products = [
     sizes: ["S", "M", "L", "XL"],
     img: TRYON_STAGE_IMG,
   },
+  // Owner-supplied Kurti line (mirrors the API seed; prices match server minor units).
+  ...[
+    ["blue-full-sleeve-kurti", "Blue Full-Sleeve Kurti", "Blue", "#2B4C9B"],
+    ["blue-sleeveless-kurti", "Blue Sleeveless Kurti", "Blue", "#2B4C9B"],
+    ["green-checked-full-sleeve-kurti", "Green Checked Full-Sleeve Kurti", "Green Checks", "#3F6B4F"],
+    ["purple-full-sleeve-kurti", "Purple Full-Sleeve Kurti", "Purple", "#6B3FA0"],
+    ["white-full-sleeve-kurti", "White Full-Sleeve Kurti", "White", "#F5F2EA"],
+  ].map(([slug, name, color, hex]) => ({
+    slug,
+    name,
+    price: 1999,
+    fabric: "Owner-supplied kurti",
+    category: "Kurtis",
+    tryOn: true,
+    badge: "Try-on available",
+    colors: [{ name: color, hex }],
+    sizes: ["S", "M", "L"],
+    img: `http://localhost:8000/media/sample/${slug}.png`,
+  })),
 ];
 
 export const categories = [

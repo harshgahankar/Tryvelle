@@ -1,58 +1,75 @@
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { products } from "../data/products";
 
 const ShopContext = createContext(null);
 export const useShop = () => useContext(ShopContext);
 
+const STORAGE_KEY = "tryvelle-cart-v1"; // guest lines only: slug/size/color/qty, never credentials
+
+function loadCart() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (c) => c && typeof c.slug === "string" && typeof c.size === "string" &&
+        typeof c.color === "string" && Number.isInteger(c.qty) && c.qty > 0 && c.qty <= 99
+    );
+  } catch {
+    return [];
+  }
+}
+
+const placeholder = (slug) => ({
+  slug,
+  name: slug,
+  price: 0,
+  fabric: "",
+  category: "",
+  tryOn: false,
+  badge: "",
+  colors: [],
+  sizes: [],
+  img: "",
+});
+
 export function ShopProvider({ children }) {
-  const [cart, setCart] = useState([
-    { slug: "everyday-cotton-tee", size: "M", color: "Cream", qty: 1 },
-    { slug: "heavy-canvas-chore-shirt", size: "L", color: "Ecru", qty: 1 },
-  ]);
-  const [wishlist, setWishlist] = useState(["washed-linen-tee"]);
-  const [orders, setOrders] = useState([]);
+  const [cart, setCart] = useState(loadCart);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+    } catch {
+      /* storage full or unavailable: session-only cart */
+    }
+  }, [cart]);
 
   const cartDetailed = useMemo(
-    () =>
-      cart.map((c) => ({
-        ...c,
-        product: products.find((p) => p.slug === c.slug),
-      })),
+    () => cart.map((c) => ({ ...c, product: products.find((p) => p.slug === c.slug) ?? placeholder(c.slug) })),
     [cart]
   );
 
-  const subtotal = cartDetailed.reduce((s, c) => s + c.product.price * c.qty, 0);
-
   const addToCart = (slug, size = "M", color) => {
     const p = products.find((x) => x.slug === slug);
+    const resolvedColor = color ?? p?.colors[0]?.name ?? "One";
     setCart((prev) => {
-      const i = prev.findIndex((c) => c.slug === slug && c.size === size && c.color === (color ?? p.colors[0].name));
+      const i = prev.findIndex((c) => c.slug === slug && c.size === size && c.color === resolvedColor);
       if (i >= 0) {
         const next = [...prev];
-        next[i] = { ...next[i], qty: next[i].qty + 1 };
+        next[i] = { ...next[i], qty: Math.min(99, next[i].qty + 1) };
         return next;
       }
-      return [...prev, { slug, size, color: color ?? p.colors[0].name, qty: 1 }];
+      return [...prev, { slug, size, color: resolvedColor, qty: 1 }];
     });
   };
   const updateQty = (idx, qty) =>
-    setCart((prev) => (qty <= 0 ? prev.filter((_, i) => i !== idx) : prev.map((c, i) => (i === idx ? { ...c, qty } : c))));
+    setCart((prev) => (qty <= 0 ? prev.filter((_, i) => i !== idx) : prev.map((c, i) => (i === idx ? { ...c, qty: Math.min(99, qty) } : c))));
   const removeItem = (idx) => setCart((prev) => prev.filter((_, i) => i !== idx));
   const clearCart = () => setCart([]);
-  const toggleWish = (slug) =>
-    setWishlist((prev) => (prev.includes(slug) ? prev.filter((s) => s !== slug) : [...prev, slug]));
-  const placeOrder = (info) => {
-    const id = `CS-${Math.floor(100000 + Math.random() * 900000)}`;
-    const order = { id, items: cartDetailed, subtotal, ...info, date: new Date().toISOString() };
-    setOrders((p) => [order, ...p]);
-    clearCart();
-    return order;
-  };
 
   return (
-    <ShopContext.Provider
-      value={{ cart, cartDetailed, subtotal, addToCart, updateQty, removeItem, clearCart, wishlist, toggleWish, orders, placeOrder }}
-    >
+    <ShopContext.Provider value={{ cart, cartDetailed, addToCart, updateQty, removeItem, clearCart }}>
       {children}
     </ShopContext.Provider>
   );
