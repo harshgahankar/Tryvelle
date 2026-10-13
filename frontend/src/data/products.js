@@ -98,24 +98,24 @@ export const products = [
     sizes: ["S", "M", "L", "XL"],
     img: TRYON_STAGE_IMG,
   },
-  // Owner-supplied Kurti line (mirrors the API seed; prices match server minor units).
+  // Owner-supplied line (mirrors the API seed; prices match server minor units).
   ...[
-    ["blue-full-sleeve-kurti", "Blue Full-Sleeve Kurti", "Blue", "#2B4C9B"],
-    ["blue-sleeveless-kurti", "Blue Sleeveless Kurti", "Blue", "#2B4C9B"],
-    ["green-checked-full-sleeve-kurti", "Green Checked Full-Sleeve Kurti", "Green Checks", "#3F6B4F"],
-    ["purple-full-sleeve-kurti", "Purple Full-Sleeve Kurti", "Purple", "#6B3FA0"],
-    ["white-full-sleeve-kurti", "White Full-Sleeve Kurti", "White", "#F5F2EA"],
-  ].map(([slug, name, color, hex]) => ({
+    ["blue-full-sleeve-kurti", "Blue Full Sleeves Shirt", "Blue", "#2B4C9B", "Blue Full Sleeves Shirt/blue-full-sleeve-shirt-01.png"],
+    ["blue-sleeveless-kurti", "Blue sleeveless kurti", "Blue", "#2B4C9B", "Blue sleeveless kurti/blue-sleeveless-kurti-01.png"],
+    ["green-checked-full-sleeve-kurti", "Green Checked Full Sleeves Shirt", "Green Checks", "#3F6B4F", "Green Checked Full Sleeves Shirt/green-checked-full-sleeve-shirt-01.png"],
+    ["purple-full-sleeve-kurti", "Purple Full Sleeve Kurti", "Purple", "#6B3FA0", "Purple Full Sleeve Kurti/purple-full-sleeve-kurti-01.png"],
+    ["white-full-sleeve-kurti", "White full Sleeves Shirt", "White", "#F5F2EA", "White full Sleeves Shirt/white-full-sleeve-shirt-01.png"],
+  ].map(([slug, name, color, hex, photo]) => ({
     slug,
     name,
     price: 1999,
-    fabric: "Owner-supplied kurti",
-    category: "Kurtis",
+    fabric: "Owner-supplied garment",
+    category: "Shirts",
     tryOn: true,
     badge: "Try-on available",
     colors: [{ name: color, hex }],
     sizes: ["S", "M", "L"],
-    img: `http://localhost:8000/media/sample/${slug}.png`,
+    img: `http://localhost:8000/media/sample/${photo}`,
   })),
 ];
 
