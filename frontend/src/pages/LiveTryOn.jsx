@@ -1,117 +1,184 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useSearchParams, useNavigate } from "react-router-dom";
-import { products } from "../data/products";
+import { api, minorToInr } from "../lib/api";
 import { useShop } from "../store/ShopContext";
-import { LIVE_FEED_IMG } from "../data/products";
+import useTryOnSession from "../features/try-on/useTryOnSession";
+import { loadGarment, selectAssetForColor } from "../features/try-on/assetCache";
 
-const SWATCHES = [
-  { name: "Cream", hex: "#F4EFE6" },
-  { name: "Charcoal", hex: "#2E2E2E" },
-  { name: "Burgundy", hex: "#8D040F" },
-];
+const FAILED = new Set(["camera-denied", "no-camera", "camera-busy", "unsupported", "model-failure", "camera-failed"]);
 
 export default function LiveTryOn() {
   const [params] = useSearchParams();
   const slug = params.get("product") ?? "everyday-cotton-tee";
-  const p = products.find((x) => x.slug === slug) ?? products[0];
-  const [color, setColor] = useState(SWATCHES[0]);
-  const [scale, setScale] = useState(100);
-  const [offsetY, setOffsetY] = useState(0);
+  const [p, setP] = useState(null);
+  const [assets, setAssets] = useState([]);
+  const [loadState, setLoadState] = useState("loading");
+  const [loadError, setLoadError] = useState("");
+  const [colorId, setColorId] = useState(null);
+  const [assetNote, setAssetNote] = useState("");
   const [size, setSize] = useState("M");
-  const [guide, setGuide] = useState(true);
-  const [toast, setToast] = useState(false);
   const { addToCart } = useShop();
   const nav = useNavigate();
+  const s = useTryOnSession();
 
-  const snap = () => { setToast(true); setTimeout(() => setToast(false), 1800); };
+  useEffect(() => {
+    let live = true;
+    setLoadState("loading");
+    api.product(slug)
+      .then(async (d) => {
+        if (!live) return;
+        setP(d);
+        setColorId(d.colors[0]?.color_id);
+        const a = await api.tryOnAssets(d.id).catch(() => ({ items: [] }));
+        if (!live) return;
+        setAssets(a.items ?? []);
+        setLoadState("success");
+      })
+      .catch((e) => live && (setLoadError(e.message), setLoadState("load-error")));
+    return () => { live = false; };
+  }, [slug]);
+
+  // Color switch loads that colorway's published asset — camera keeps running.
+  useEffect(() => {
+    if (!p || !colorId) return;
+    const asset = selectAssetForColor(assets, colorId);
+    if (!asset) {
+      s.setGarment(null);
+      setAssetNote("No published try-on asset for this colorway — guides only.");
+      return;
+    }
+    setAssetNote("");
+    loadGarment(asset.asset_url)
+      .then((img) => s.setGarment({ img, anchors: asset.anchors }))
+      .catch(() => {
+        s.setGarment(null);
+        setAssetNote("Garment image failed to load — guides only.");
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [colorId, assets, p]);
+
+  if (loadState === "loading") {
+    return <section className="w-full bg-camera-surface text-camera-text min-h-[calc(100vh-5rem)] flex items-center justify-center"><p className="font-body-md text-white/70">Loading garment assets…</p></section>;
+  }
+  if (loadState === "load-error") {
+    return (
+      <section className="w-full bg-camera-surface text-camera-text min-h-[calc(100vh-5rem)] flex items-center justify-center px-4">
+        <div className="text-center" role="alert">
+          <p className="font-headline-sm">Could not load garment</p>
+          <p className="font-body-sm text-white/60 mt-1">{loadError}</p>
+          <div className="flex gap-2 justify-center mt-4">
+            <button onClick={() => window.location.reload()} className="h-11 px-5 rounded-lg bg-white text-black font-label-md">Retry</button>
+            <Link to="/shop" className="h-11 px-5 inline-flex items-center rounded-lg border border-white/30 font-label-md">Browse catalog instead</Link>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const color = p.colors.find((c) => c.color_id === colorId) ?? p.colors[0];
+  const price = color.variants[0]?.price_minor ?? p.colors[0]?.variants[0]?.price_minor ?? 0;
+  const failed = FAILED.has(s.status);
 
   return (
     <section className="w-full bg-camera-surface text-camera-text flex flex-col min-h-[calc(100vh-5rem)]">
-      <header className="w-full px-margin-tablet lg:px-margin-desktop py-3 flex flex-wrap items-center justify-between gap-3">
-        <Link to={`/product/${p.slug}`} className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/15 px-3 py-2 rounded-lg font-label-md">
-          <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to {p.name}
+      <header className="w-full px-4 lg:px-margin-desktop py-3 flex flex-wrap items-center justify-between gap-3">
+        <Link to={`/product/${p.slug}`} className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/15 px-3 py-2 rounded-lg font-label-md min-h-[44px]">
+          <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to {p.title}
         </Link>
-        <div className="flex items-center gap-3">
-          <span className="font-product-title">{p.name} — <span className="font-normal text-white/90">{color.name}</span></span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 font-caption"><span className="w-2 h-2 rounded-full bg-emerald-500" /> Camera active (60 FPS)</span>
+        <div className="flex items-center gap-3" role="status" aria-live="polite">
+          <span className="font-product-title">{p.title} — <span className="font-normal text-white/90">{color.name}</span></span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/40 font-caption">
+            <span className={`w-2 h-2 rounded-full ${s.status === "tracking" ? "bg-emerald-500" : "bg-white/40"}`} />
+            {s.status === "idle" ? "Camera off" : s.status === "tracking" ? `Tracking · ${s.fps} fps` : s.status}
+          </span>
         </div>
         <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 font-caption"><span className="material-symbols-outlined text-[16px] text-emerald-400">lock</span> Local device processing • Not uploaded</div>
       </header>
+
       <div className="flex-1 w-full flex flex-col lg:flex-row min-h-0">
-        <div className="relative flex-1 lg:basis-[70%] bg-[#0B0B0B] flex flex-col items-center justify-center p-space-md lg:p-space-lg">
-          <div className="relative w-full max-w-5xl aspect-[16/9] rounded-xl overflow-hidden bg-[#181818] shadow-2xl">
-            <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: `url('${LIVE_FEED_IMG}')` }} />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
-            {/* garment overlay */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ transform: `translateY(${offsetY}px) scale(${scale / 100})` }}>
-              <svg viewBox="0 0 320 360" className="w-72 sm:w-80 md:w-96 drop-shadow-2xl" fill="none">
-                <path d="M105 44 C 122 62, 198 62, 215 44 L 272 75 C 286 83, 298 94, 290 120 L 254 136 C 248 116, 240 106, 234 100 L 230 310 C 230 324, 90 324, 90 310 L 86 100 C 80 106, 72 116, 66 136 L 30 120 C 22 94, 34 83, 48 75 Z" fill={color.hex} stroke="rgba(0,0,0,0.2)" />
-                <path d="M105 44 C 128 66, 192 66, 215 44" stroke="rgba(0,0,0,0.25)" strokeWidth="3" strokeLinecap="round" />
-              </svg>
-            </div>
-            {guide && (
-              <svg viewBox="0 0 300 450" className="absolute inset-0 m-auto h-[85%] text-white opacity-40" fill="none" stroke="currentColor" strokeWidth="1.2" strokeDasharray="4 4">
-                <ellipse cx="150" cy="85" rx="38" ry="50" /><path d="M112 115 C 80 135, 45 160, 30 205 L 55 240 L 85 200 L 85 390 L 215 390 L 215 200 L 245 240 L 270 205 C 255 160, 220 135, 188 115 Z" />
-              </svg>
-            )}
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-              <div className="inline-flex items-center gap-2 bg-success px-3.5 py-1.5 rounded-full font-label-sm font-semibold"><span className="w-2 h-2 rounded-full bg-emerald-200 animate-pulse" /> Tracking: Ready • Front view locked</div>
-            </div>
-            <div className="absolute bottom-4 left-4 flex gap-2 flex-wrap">
-              {[
-                ["replay", "Reset view", () => { setScale(100); setOffsetY(0); }],
-                ["cameraswitch", "Switch camera", () => {}],
-                ["photo_camera", "Capture snapshot", snap],
-              ].map(([icon, label, fn]) => (
-                <button key={label} onClick={fn} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-black/70 hover:bg-black/90 font-label-sm backdrop-blur">
-                  <span className="material-symbols-outlined text-[18px]">{icon}</span> {label}
-                </button>
-              ))}
-            </div>
-            <div className="absolute bottom-4 right-4">
-              <button onClick={() => setGuide((v) => !v)} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-black/70 font-label-sm backdrop-blur">
-                <span className="material-symbols-outlined text-[18px]">view_in_ar</span> {guide ? "Hide guide" : "Show guide"}
+        <div className="relative flex-1 lg:basis-[70%] bg-[#0B0B0B] flex flex-col items-center justify-center p-4 lg:p-space-lg">
+          <video ref={s.videoRef} className="hidden" muted playsInline />
+          {s.status === "idle" && !failed ? (
+            <div className="w-full max-w-5xl rounded-xl bg-[#181818] p-8 text-center">
+              <p className="font-headline-sm">Preview how this looks on you.</p>
+              <p className="font-body-sm text-white/60 mt-1">Camera runs on-device only. This view does not measure size or guarantee fit.</p>
+              <button onClick={() => s.start()} className="mt-4 h-12 px-6 rounded-lg bg-primary-container font-label-md font-semibold min-h-[44px]">
+                Start camera
               </button>
             </div>
-            {toast && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white text-black px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3">
-                <span className="material-symbols-outlined text-success text-[24px]">check_circle</span>
-                <div><p className="font-label-md font-semibold">Snapshot Saved Locally</p><p className="font-caption text-secondary">Stored in browser cache only</p></div>
+          ) : failed ? (
+            <div className="w-full max-w-5xl rounded-xl bg-[#181818] p-8 text-center" role="alert">
+              <p className="font-headline-sm">
+                {s.status === "camera-denied" ? "Camera permission denied" : s.status === "model-failure" ? "Preview model failed" : "Camera unavailable"}
+              </p>
+              <p className="font-body-sm text-white/60 mt-1">{s.error} {s.status === "camera-denied" && "Allow access in browser site settings, then retry — we never re-prompt automatically."}</p>
+              <div className="flex flex-wrap gap-2 justify-center mt-4">
+                <button onClick={() => s.start()} className="h-11 px-5 rounded-lg bg-white text-black font-label-md">Retry camera</button>
+                <Link to={`/product/${p.slug}`} className="h-11 px-5 inline-flex items-center rounded-lg border border-white/30 font-label-md">View product photos instead</Link>
+                <Link to="/shop" className="h-11 px-5 inline-flex items-center rounded-lg border border-white/30 font-label-md">Browse catalog</Link>
               </div>
-            )}
-          </div>
-          <p className="mt-2 w-full max-w-5xl flex justify-between font-caption text-white/50"><span>2D scale approximation — choose official size below.</span><span className="hidden sm:block">Pose Estimator v3.4 (WASM client-side)</span></p>
+              {(p.photos ?? []).length > 0 && (
+                <div className="mt-4 flex gap-2 justify-center flex-wrap">
+                  {p.photos.slice(0, 3).map((f, i) => <img key={i} src={f.url} alt={f.alt_text} className="w-24 h-28 rounded-lg object-cover" />)}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="relative w-full max-w-5xl aspect-video rounded-xl overflow-hidden bg-[#181818] shadow-2xl">
+              <canvas ref={s.canvasRef} className="absolute inset-0 w-full h-full" />
+              {s.status === "low-confidence" && (
+                <div className="absolute top-3 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-black/80 font-caption">Step back so shoulders + torso are fully visible</div>
+              )}
+              <div className="absolute bottom-3 left-3 flex gap-2 flex-wrap">
+                <button onClick={s.resetCalib} className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-black/70 font-label-sm backdrop-blur"><span className="material-symbols-outlined text-[18px]">replay</span> Reset view</button>
+                <button onClick={s.switchCam} className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-black/70 font-label-sm backdrop-blur"><span className="material-symbols-outlined text-[18px]">cameraswitch</span> Switch camera</button>
+              </div>
+              <div className="absolute bottom-3 right-3">
+                <button onClick={() => s.setShowGuide(!s.showGuide)} className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-black/70 font-label-sm backdrop-blur"><span className="material-symbols-outlined text-[18px]">view_in_ar</span> {s.showGuide ? "Hide guide" : "Show guide"}</button>
+              </div>
+            </div>
+          )}
+          {assetNote && !failed && <p className="mt-2 font-caption text-amber-300">{assetNote}</p>}
+          <p className="mt-2 w-full max-w-5xl flex justify-between font-caption text-white/50"><span>2D silhouette approximation — choose official size below.</span><span className="hidden sm:block">On-device pose (WASM)</span></p>
         </div>
-        <aside className="w-full lg:basis-[30%] bg-[#1A1A1A] p-space-lg flex flex-col gap-5">
+
+        <aside className="w-full lg:basis-[30%] bg-[#1A1A1A] p-4 lg:p-space-lg pb-[max(1rem,env(safe-area-inset-bottom))] flex flex-col gap-5">
           <div className="flex gap-3 p-4 bg-white/5 rounded-xl">
-            <img src={p.img} alt={p.name} className="w-16 h-20 rounded-lg object-cover" />
-            <div><p className="font-caption uppercase text-white/60 font-semibold">Essential Capsule</p><h2 className="font-product-title font-bold truncate">{p.name}</h2><p className="font-product-title">₹{p.price.toLocaleString("en-IN")}</p></div>
+            {(p.photos[0]?.url) && <img src={p.photos[0].url} alt={p.title} className="w-16 h-20 rounded-lg object-cover" />}
+            <div className="min-w-0"><p className="font-caption uppercase text-white/60 font-semibold">{p.category.name}</p><h2 className="font-product-title font-bold truncate">{p.title}</h2><p className="font-product-title">{minorToInr(price)}</p></div>
           </div>
           <div>
-            <p className="font-label-sm font-semibold mb-2 text-white/80">Select Studio Colorway</p>
-            <div className="flex gap-3">
-              {SWATCHES.map((s) => (
-                <button key={s.name} title={s.name} onClick={() => setColor(s)} className={`w-10 h-10 rounded-full p-0.5 ${color.name === s.name ? "ring-2 ring-white ring-offset-2 ring-offset-[#1A1A1A]" : ""}`}>
-                  <span className="block w-full h-full rounded-full" style={{ background: s.hex }} />
-                </button>
-              ))}
+            <p className="font-label-sm font-semibold mb-2 text-white/80">Colorway (switches live, camera stays on)</p>
+            <div className="flex gap-3 flex-wrap">
+              {p.colors.map((c) => {
+                const has = assets.some((a) => a.color_id === c.color_id);
+                return (
+                  <button key={c.color_id} title={`${c.name}${has ? "" : " — no try-on asset"}`} onClick={() => setColorId(c.color_id)}
+                    className={`relative w-11 h-11 rounded-full p-0.5 min-w-[44px] min-h-[44px] ${color.color_id === c.color_id ? "ring-2 ring-white ring-offset-2 ring-offset-[#1A1A1A]" : ""}`}>
+                    <span className="block w-full h-full rounded-full border border-white/20" style={{ background: c.hex }} />
+                    {!has && <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-black text-[10px] flex items-center justify-center" title="No asset">!</span>}
+                  </button>
+                );
+              })}
             </div>
           </div>
           <div className="space-y-3">
             <p className="font-label-sm font-semibold text-white/80">Adjust appearance (not sizing)</p>
-            <label className="block font-caption text-white/60">Overlay scale: {scale}%<input type="range" min={90} max={110} value={scale} onChange={(e) => setScale(+e.target.value)} className="w-full" /></label>
-            <label className="block font-caption text-white/60">Vertical position: {offsetY}px<input type="range" min={-20} max={20} value={offsetY} onChange={(e) => setOffsetY(+e.target.value)} className="w-full" /></label>
+            <label className="block font-caption text-white/60">Overlay scale: {Math.round(s.calib.scale * 100)}%<input type="range" min={0.9} max={1.1} step={0.01} value={s.calib.scale} onChange={(e) => s.setCalib({ ...s.calib, scale: +e.target.value })} className="w-full min-h-[44px]" /></label>
+            <label className="block font-caption text-white/60">Vertical offset: {s.calib.offsetY.toFixed(2)} span<input type="range" min={-0.2} max={0.2} step={0.01} value={s.calib.offsetY} onChange={(e) => s.setCalib({ ...s.calib, offsetY: +e.target.value })} className="w-full min-h-[44px]" /></label>
           </div>
           <div>
             <p className="font-label-sm font-semibold mb-2 text-white/80">Choose purchase size</p>
             <div className="flex gap-2 flex-wrap">
-              {["S", "M", "L", "XL"].map((s) => (
-                <button key={s} onClick={() => setSize(s)} className={`min-w-[44px] h-10 rounded-lg font-label-sm border ${size === s ? "bg-white text-black" : "bg-white/10 text-white"}`}>{s}</button>
+              {color.variants.filter((v) => v.stock_quantity > 0).map((v) => (
+                <button key={v.variant_id} onClick={() => setSize(v.size_label)} className={`min-w-[44px] min-h-[44px] px-2 rounded-lg font-label-sm border ${size === v.size_label ? "bg-white text-black" : "bg-white/10 text-white"}`}>{v.size_label}</button>
               ))}
             </div>
           </div>
-          <button onClick={() => { addToCart(p.slug, size, color.name); nav("/cart"); }} className="h-12 rounded-lg bg-primary-container hover:bg-primary font-label-md font-semibold">Add to bag — Size {size}</button>
-          <button onClick={() => nav(`/product/${p.slug}`)} className="h-11 rounded-lg bg-white/10 font-label-md">Close camera</button>
+          <button onClick={() => { addToCart(p.slug, size, color.name); nav("/cart"); }} className="min-h-[48px] rounded-lg bg-primary-container hover:bg-primary font-label-md font-semibold">Add to bag — Size {size}</button>
+          {(s.status === "tracking" || s.status === "waiting" || s.status === "low-confidence")
+            ? <button onClick={s.close} className="min-h-[44px] rounded-lg bg-white/10 font-label-md">Close camera</button>
+            : <button onClick={() => nav(`/product/${p.slug}`)} className="min-h-[44px] rounded-lg bg-white/10 font-label-md">Back to product</button>}
         </aside>
       </div>
     </section>

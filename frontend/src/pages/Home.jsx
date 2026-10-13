@@ -1,9 +1,18 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "../components/ProductCard";
 import { products, categories, HERO_IMG, DETAIL_IMG, TRYON_STAGE_IMG, EDITORIAL_IMG } from "../data/products";
+import { api, toCard } from "../lib/api";
 
 export default function Home() {
-  const arrivals = products.slice(0, 4);
+  const [arrivals, setArrivals] = useState(products.slice(0, 4));
+  useEffect(() => {
+    let live = true;
+    api.products({ page_size: 4 })
+      .then((d) => live && d.items.length && setArrivals(d.items.map(toCard)))
+      .catch(() => { /* mock fallback stays */ });
+    return () => { live = false; };
+  }, []);
   return (
     <div className="flex flex-col w-full">
       {/* SECTION 1: SPLIT EDITORIAL HERO (frontend.html ~L6-75) */}
