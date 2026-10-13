@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     COOKIE_SECURE: bool = False
     STORAGE_BACKEND: str = "local"
     STORAGE_LOCAL_DIR: str = "./media"
+    MEDIA_BASE_URL: str = "http://localhost:8000"  # absolute media URLs; frontend runs on another origin
     DEMO_MODE: bool = True
     SETUP_ADMIN_EMAIL: str = ""
     SETUP_ADMIN_PASSWORD: str = ""

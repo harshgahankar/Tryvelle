@@ -18,7 +18,11 @@ router = APIRouter()
 
 
 def asset_url(key: str) -> str:
-    return key if key.startswith("http") else f"/media/{key}"
+    if key.startswith("http"):
+        return key
+    from app.core.config import get_settings
+    base = get_settings().MEDIA_BASE_URL.rstrip("/")
+    return f"{base}/media/{key}"
 
 
 def color_out(color: ProductColor, published: set) -> ColorOut:

@@ -74,6 +74,7 @@ def test_detail_and_404_envelope(client):
     assert body["try_on_available"] is True
     assert len(body["size_chart"]["rows"]) == 5
     assert body["colors"][0]["variants"][0]["price_minor"] == 129900
+    assert body["photos"][0]["url"].startswith("http")  # absolute: frontend is another origin
     r = client.get("/api/v1/products/no-such-tee")
     assert r.status_code == 404
     assert r.json()["error"]["code"] == "NOT_FOUND"
