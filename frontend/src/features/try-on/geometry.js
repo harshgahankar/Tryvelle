@@ -10,6 +10,11 @@ export const SHOULDER_SPAN_MAX_RATIO = 0.95; // span wider than 95% of viewport 
 
 // Map a normalized landmark (unmirrored source coords) into canvas CSS px
 // using the same cover transform used to draw video.
+// mirrored=true is for SCREEN-space UI (status overlays). The garment
+// similarity transform must use mirrored=false: the renderer mirrors the
+// whole scene once at draw time, and a rotation cannot represent the extra
+// reflection (it comes out as a 180-degree flip). Garment anchors use
+// wearer anatomy (left_shoulder = wearer's left = image-right).
 export function mapLandmarkToCanvas(lm, videoW, videoH, viewW, viewH, mirrored = true) {
   const scale = Math.max(viewW / videoW, viewH / videoH);
   const offX = (viewW - videoW * scale) / 2;

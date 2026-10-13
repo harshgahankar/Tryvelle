@@ -103,8 +103,10 @@ export default function PrototypeTryOn() {
           if (lms && vw) {
             const s = extractShoulders(lms);
             if (s) {
-              const P = mapLandmarkToCanvas(s.L, vw, vh, rect.width, rect.height, true);
-              const Q = mapLandmarkToCanvas(s.R, vw, vh, rect.width, rect.height, true);
+              // Unmirrored space: the scene mirror applies once at draw time.
+              // Mirrored mapping here would force a 180-degree flip.
+              const P = mapLandmarkToCanvas(s.L, vw, vh, rect.width, rect.height, false);
+              const Q = mapLandmarkToCanvas(s.R, vw, vh, rect.width, rect.height, false);
               const v = validateShoulders(P, Q, s.vL, s.vR, rect.width);
               if (v.ok) {
                 st.lastOk = now;

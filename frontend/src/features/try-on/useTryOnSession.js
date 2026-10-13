@@ -104,8 +104,12 @@ export default function useTryOnSession() {
           if (lms && vw) {
             const s = extractShoulders(lms);
             if (s) {
-              const P = mapLandmarkToCanvas(s.L, vw, vh, rect.width, rect.height, true);
-              const Q = mapLandmarkToCanvas(s.R, vw, vh, rect.width, rect.height, true);
+              // Transform math runs in UNMIRRORED space: the canvas mirror is
+              // applied once to the whole scene at draw time. Mapping here
+              // with mirrored=true forces a 180-degree flip (rotation cannot
+              // represent a reflection). Anchors use wearer anatomy.
+              const P = mapLandmarkToCanvas(s.L, vw, vh, rect.width, rect.height, false);
+              const Q = mapLandmarkToCanvas(s.R, vw, vh, rect.width, rect.height, false);
               const v = validateShoulders(P, Q, s.vL, s.vR, rect.width);
               if (v.ok) {
                 st.lastOk = now;

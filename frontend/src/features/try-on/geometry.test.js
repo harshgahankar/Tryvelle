@@ -19,6 +19,24 @@ describe("cover mapping", () => {
   });
 });
 
+describe("facing-pose regression: no 180-degree flip", () => {
+  it("wearer-anatomy anchors + unmirrored mapping give theta near 0", () => {
+    // Person facing camera: anatomical left (lm 11) on sensor-right.
+    const P = mapLandmarkToCanvas({ x: 0.62, y: 0.35 }, 1000, 1000, 1000, 1000, false);
+    const Q = mapLandmarkToCanvas({ x: 0.38, y: 0.35 }, 1000, 1000, 1000, 1000, false);
+    // Garment: left_shoulder = wearer's left = image-right.
+    const t = similarityFromShoulders({ x: 630, y: 130 }, { x: 370, y: 130 }, P, Q);
+    expect(Math.abs(t.theta)).toBeLessThan(0.1);
+    expect(t.s).toBeCloseTo(240 / 260, 2);
+  });
+  it("mirrored mapping would force a half-turn (documents the pitfall)", () => {
+    const P = mapLandmarkToCanvas({ x: 0.62, y: 0.35 }, 1000, 1000, 1000, 1000, true);
+    const Q = mapLandmarkToCanvas({ x: 0.38, y: 0.35 }, 1000, 1000, 1000, 1000, true);
+    const t = similarityFromShoulders({ x: 630, y: 130 }, { x: 370, y: 130 }, P, Q);
+    expect(Math.abs(Math.abs(t.theta) - Math.PI)).toBeLessThan(0.1);
+  });
+});
+
 describe("similarity transform", () => {
   it("maps known shoulder pairs to expected scale/rotation/translation", () => {
     const A = { x: 0, y: 0 }, B = { x: 100, y: 0 };
