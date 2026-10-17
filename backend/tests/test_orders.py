@@ -34,7 +34,7 @@ def setup():
         s.add(Address(user_id=sam.id, recipient="Sam", line1="1 Road", city="Pune", postal_code="411001"))
         s.commit()
         addr_id = str(s.query(Address).filter_by(user_id=sam.id).one().id)
-        variant = s.query(ProductVariant).filter(ProductVariant.sku.like("%everyday-cotton-tee-cream-m")).one()
+        variant = s.query(ProductVariant).filter(ProductVariant.sku.like("%white-oxford-shirt-white-m")).one()
 
     def override():
         db = TestingSession()
@@ -65,7 +65,7 @@ def test_cart_ignores_client_prices(setup):
     assert body["subtotal_minor"] == price * 2 and body["shipping_minor"] == 0
     assert body["items"][0]["unit_price_minor"] == price
     bad = client.post("/api/v1/cart/validate",
-                      json={"items": [{"variant_id": vid, "quantity": 11}]})  # M cream holds 10
+                      json={"items": [{"variant_id": vid, "quantity": 11}]})  # M holds 10
     assert bad.json()["items"][0]["error"] == "OUT_OF_STOCK"
 
 
@@ -128,7 +128,7 @@ def test_concurrent_orders_cannot_oversell(tmp_path):
         s.add(Address(user_id=u.id, recipient="U", line1="1 Rd", city="Pune", postal_code="411001"))
         s.commit()
         addr = str(s.query(Address).filter_by(user_id=u.id).one().id)
-        v = s.query(ProductVariant).filter(ProductVariant.sku.like("%everyday-cotton-tee-cream-xs")).one()
+        v = s.query(ProductVariant).filter(ProductVariant.sku.like("%white-oxford-shirt-white-s")).one()
         vid, price, uid = str(v.id), v.price_minor, u.id
         v.stock_quantity = 1
         s.commit()

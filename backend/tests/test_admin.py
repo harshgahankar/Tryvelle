@@ -65,14 +65,14 @@ def test_shopper_rejected_from_admin(seeded):
     shopper, h = login_as(seeded, "sam@example.com", "longpassword1")
     assert shopper.get("/api/v1/admin/products").status_code == 403
     r = shopper.post("/api/v1/admin/products", headers=h, json={
-        "category_slug": "tops-tees", "slug": "x", "title": "X"})
+        "category_slug": "shirts", "slug": "x", "title": "X"})
     assert r.status_code == 403
 
 
 def test_product_lifecycle_and_publish_gate(seeded):
     admin, h = login_as(seeded, "admin@example.com", "adminpass123")
     p = admin.post("/api/v1/admin/products", headers=h, json={
-        "category_slug": "tops-tees", "slug": "test-tee", "title": "Test Tee"}).json()
+        "category_slug": "shirts", "slug": "test-tee", "title": "Test Tee"}).json()
     # Cannot publish without an active variant.
     r = admin.patch(f"/api/v1/admin/products/{p['id']}", headers=h, json={"status": "published"})
     assert r.status_code == 409 and r.json()["error"]["code"] == "UNPUBLISHABLE"
@@ -96,8 +96,8 @@ def test_product_lifecycle_and_publish_gate(seeded):
 def test_asset_upload_validation_and_publish(seeded):
     import json
     admin, h = login_as(seeded, "admin@example.com", "adminpass123")
-    pid = admin.get("/api/v1/products").json()["items"][0]["id"]
-    color_id = admin.get("/api/v1/products/everyday-cotton-tee").json()["colors"][0]["color_id"]
+    pid = admin.get("/api/v1/products/white-oxford-shirt").json()["id"]
+    color_id = admin.get("/api/v1/products/white-oxford-shirt").json()["colors"][0]["color_id"]
 
     def upload(data, anchors=ANCHORS, name="g.png"):
         return admin.post(f"/api/v1/admin/colors/{color_id}/try-on-assets", headers=h,

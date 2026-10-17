@@ -62,7 +62,7 @@ def setup(monkeypatch):
         s.add(Address(user_id=sam.id, recipient="Sam", line1="1 Road", city="Pune", postal_code="411001"))
         s.commit()
         addr_id = str(s.query(Address).filter_by(user_id=sam.id).one().id)
-        v = s.query(ProductVariant).filter(ProductVariant.sku.like("%everyday-cotton-tee-cream-m")).one()
+        v = s.query(ProductVariant).filter(ProductVariant.sku.like("%white-oxford-shirt-white-m")).one()
         vid, price, stock = str(v.id), v.price_minor, v.stock_quantity
 
     def override():

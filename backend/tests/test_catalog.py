@@ -40,13 +40,13 @@ def test_categories(client):
     r = client.get("/api/v1/categories")
     assert r.status_code == 200
     body = r.json()
-    assert body["total"] == 6 and len(body["items"]) == 6
+    assert body["total"] == 2 and len(body["items"]) == 2
 
 
 def test_list_pagination_and_shape(client):
     r = client.get("/api/v1/products", params={"page_size": 2})
     body = r.json()
-    assert (body["page"], body["page_size"], body["total"]) == (1, 2, 10)
+    assert (body["page"], body["page_size"], body["total"]) == (1, 2, 18)
     item = body["items"][0]
     assert {"slug", "title", "min_price_minor", "colors", "photos", "try_on_available"} <= set(item)
     assert isinstance(item["min_price_minor"], int)
@@ -54,11 +54,11 @@ def test_list_pagination_and_shape(client):
 
 def test_filters_and_sort(client):
     assert client.get("/api/v1/products", params={"q": "linen"}).json()["total"] == 1
-    assert client.get("/api/v1/products", params={"category": "tops-tees"}).json()["total"] == 2
-    assert client.get("/api/v1/products", params={"max_price_minor": 150000}).json()["total"] == 2
-    assert client.get("/api/v1/products", params={"size": "XS"}).json()["total"] == 1
+    assert client.get("/api/v1/products", params={"category": "shirts"}).json()["total"] == 8
+    assert client.get("/api/v1/products", params={"max_price_minor": 150000}).json()["total"] == 6
+    assert client.get("/api/v1/products", params={"size": "M"}).json()["total"] == 18
     asc = client.get("/api/v1/products", params={"sort": "price_asc"}).json()["items"]
-    assert asc[0]["slug"] == "everyday-cotton-tee"
+    assert asc[0]["slug"] == "light-blue-casual-shirt"
 
 
 def test_page_size_capped_with_envelope(client):
@@ -68,12 +68,12 @@ def test_page_size_capped_with_envelope(client):
 
 
 def test_detail_and_404_envelope(client):
-    r = client.get("/api/v1/products/everyday-cotton-tee")
+    r = client.get("/api/v1/products/white-oxford-shirt")
     assert r.status_code == 200
     body = r.json()
     assert body["try_on_available"] is True
     assert len(body["size_chart"]["rows"]) == 5
-    assert body["colors"][0]["variants"][0]["price_minor"] == 129900
+    assert body["colors"][0]["variants"][0]["price_minor"] == 149900
     assert body["photos"][0]["url"].startswith("http")  # absolute: frontend is another origin
     r = client.get("/api/v1/products/no-such-tee")
     assert r.status_code == 404
@@ -81,9 +81,9 @@ def test_detail_and_404_envelope(client):
 
 
 def test_draft_hidden_and_assets_published_only(client):
-    pid = client.get("/api/v1/products/everyday-cotton-tee").json()["id"]
+    pid = client.get("/api/v1/products/white-oxford-shirt").json()["id"]
     assets = client.get(f"/api/v1/products/{pid}/try-on-assets").json()["items"]
-    assert len(assets) == 1 and assets[0]["color_name"] == "Cream"
+    assert len(assets) == 1 and assets[0]["color_name"] == "White"
     other = client.get("/api/v1/products").json()["items"]
-    trouser = next(i for i in other if i["slug"] == "pleated-twill-trouser")
-    assert client.get(f"/api/v1/products/{trouser['id']}/try-on-assets").json()["items"] == []
+    plain = next(i for i in other if i["slug"] == "beige-linen-shirt")
+    assert client.get(f"/api/v1/products/{plain['id']}/try-on-assets").json()["items"] == []
