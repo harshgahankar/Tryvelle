@@ -9,7 +9,7 @@ const FAILED = new Set(["camera-denied", "no-camera", "camera-busy", "unsupporte
 
 export default function LiveTryOn() {
   const [params] = useSearchParams();
-  const slug = params.get("product") ?? "everyday-cotton-tee";
+  const slug = params.get("product") ?? "white-oxford-shirt";
   const [p, setP] = useState(null);
   const [assets, setAssets] = useState([]);
   const [loadState, setLoadState] = useState("loading");

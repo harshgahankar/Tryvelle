@@ -5,7 +5,7 @@ import { useAuth } from "../store/AuthContext";
 import { useShop } from "../store/ShopContext";
 
 export default function ProductDetail() {
-  const { slug = "everyday-cotton-tee" } = useParams();
+  const { slug = "white-oxford-shirt" } = useParams();
   const [p, setP] = useState(null);
   const [status, setStatus] = useState("loading");
   const [error, setError] = useState("");

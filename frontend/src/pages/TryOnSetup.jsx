@@ -4,7 +4,7 @@ import { api } from "../lib/api";
 
 export default function TryOnSetup() {
   const [params] = useSearchParams();
-  const slug = params.get("product") ?? "everyday-cotton-tee";
+  const slug = params.get("product") ?? "white-oxford-shirt";
   const [p, setP] = useState(null);
   const [failed, setFailed] = useState(false);
   const nav = useNavigate();
