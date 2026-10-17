@@ -1,21 +1,14 @@
 slug,title,category,description,color_name,hex,sizes,price_minor,stock_per_size,folder,overlay
-white-oxford-shirt,White Oxford Shirt,Shirts,SAMPLE: breathable cotton oxford shirt.,White,#F5F2EA,S|M|L|XL,149900,10,White Oxford Shirt,white-oxford-shirt-png.png
-light-blue-casual-shirt,Light Blue Casual Shirt,Shirts,SAMPLE: everyday brushed-cotton casual shirt.,Light Blue,#A9C6DE,S|M|L|XL,129900,12,Light Blue Casual Shirt,light-blue-casual-shirt-png.png
-navy-formal-shirt,Navy Formal Shirt,Shirts,SAMPLE: sharp wrinkle-resistant formal shirt.,Navy,#1F2A44,S|M|L|XL,169900,8,Navy Formal Shirt,navy-formal-shirt-png.png
-olive-safari-shirt,Olive Safari Shirt,Shirts,SAMPLE: rugged twill safari shirt with flap pockets.,Olive,#5A6248,S|M|L|XL,189900,7,Olive Safari Shirt,olive-safari-shirt-png.png
-maroon-party-shirt,Maroon Party Shirt,Shirts,SAMPLE: festive satin-finish party shirt.,Maroon,#7A1F2B,S|M|L|XL,159900,9,Maroon Party Shirt,maroon-party-shirt-png.png
-black-denim-shirt,Black Denim Shirt,Shirts,SAMPLE: heavyweight black denim shirt.,Black,#232323,S|M|L|XL,199900,6,Black Denim Shirt,black-denim-shirt-png.png
-beige-linen-shirt,Beige Linen Shirt,Shirts,SAMPLE: airy European flax linen shirt.,Beige,#D9CBB6,S|M|L|XL,179900,8,Beige Linen Shirt,beige-linen-shirt-png.png
-rust-checked-shirt,Rust Checked Shirt,Shirts,SAMPLE: yarn-dyed rust checks flannel shirt.,Rust Checks,#9A5A3C,S|M|L|XL,139900,11,Rust Checked Shirt,rust-checked-shirt-png.png
-teal-mandarin-shirt,Teal Mandarin Shirt,Shirts,SAMPLE: band-collar teal festive shirt.,Teal,#1F6F6B,S|M|L|XL,149900,9,Teal Mandarin Shirt,teal-mandarin-shirt-png.png
-grey-melange-shirt,Grey Melange Shirt,Shirts,SAMPLE: soft melange jersey casual shirt.,Grey,#8A8D91,S|M|L|XL,119900,14,Grey Melange Shirt,grey-melange-shirt-png.png
-mustard-a-line-kurti,Mustard A-Line Kurti,Kurtis,SAMPLE: flowy mustard rayon A-line kurti.,Mustard,#D9A441,S|M|L,189900,9,Mustard A-Line Kurti,mustard-a-line-kurti-png.png
-emerald-straight-kurti,Emerald Straight Kurti,Kurtis,SAMPLE: elegant emerald straight-cut kurti.,Emerald,#1F6B54,S|M|L,209900,7,Emerald Straight Kurti,emerald-straight-kurti-png.png
-wine-anarkali-kurti,Wine Anarkali Kurti,Kurtis,SAMPLE: festive wine anarkali with flare.,Wine,#722F37,S|M|L,259900,6,Wine Anarkali Kurti,wine-anarkali-kurti-png.png
-peach-printed-kurti,Peach Printed Kurti,Kurtis,SAMPLE: daily-wear peach block-print kurti.,Peach,#E8B48C,S|M|L,149900,12,Peach Printed Kurti,peach-printed-kurti-png.png
-indigo-denim-kurti,Indigo Denim Kurti,Kurtis,SAMPLE: structured indigo denim kurti.,Indigo,#33456B,S|M|L,219900,7,Indigo Denim Kurti,indigo-denim-kurti-png.png
-lavender-chikankari-kurti,Lavender Chikankari Kurti,Kurtis,SAMPLE: hand-embroidered chikankari kurti.,Lavender,#B9A7D9,S|M|L,239900,6,Lavender Chikankari Kurti,lavender-chikankari-kurti-png.png
-coral-sleeveless-kurti,Coral Sleeveless Kurti,Kurtis,SAMPLE: breezy coral sleeveless kurti.,Coral,#E0785A,S|M|L,159900,10,Coral Sleeveless Kurti,coral-sleeveless-kurti-png.png
-beige-kaftan-kurti,Beige Kaftan Kurti,Kurtis,SAMPLE: relaxed beige kaftan-style kurti.,Beige,#D9CBB6,S|M|L,199900,8,Beige Kaftan Kurti,beige-kaftan-kurti-png.png
-black-printed-kurti,Black Printed Kurti,Kurtis,SAMPLE: bold black foil-print evening kurti.,Black,#232323,S|M|L,229900,7,Black Printed Kurti,black-printed-kurti-png.png
-rose-pink-kurti,Rose Pink Kurti,Kurtis,SAMPLE: soft rose everyday kurti.,Rose,#D98CA6,S|M|L,169900,11,Rose Pink Kurti,rose-pink-kurti-png.png
+beige-linen-shirt,Beige Linen Shirt,Shirts,SAMPLE: lightweight linen blend shirt.,Beige,#D9C7A3,S|M|L|XL,159900,8,sample/Beige Linen Shirt,
+black-denim-shirt,Black Denim Shirt,Shirts,SAMPLE: washed black denim shirt.,Black,#1C1C1C,S|M|L|XL,169900,8,sample/Black Denim Shirt,
+maroon-party-shirt,Maroon Party Shirt,Shirts,SAMPLE: satin-finish party shirt.,Maroon,#6E1F2E,S|M|L|XL,179900,7,sample/Maroon Party Shirt,
+navy-formal-shirt,Navy Formal Shirt,Shirts,SAMPLE: crisp formal shirt.,Navy,#1F2A44,S|M|L|XL,149900,10,sample/Navi Formal Shirt,
+olive-safari-shirt,Olive Safari Shirt,Shirts,SAMPLE: utility safari shirt.,Olive,#4B5320,S|M|L|XL,189900,6,sample/Olive Safari Shirt,
+beige-kaftan-kurti,Beige Kaftan Kurti,Kurtis,SAMPLE: relaxed kaftan-style kurti.,Beige,#D9C7A3,S|M|L,199900,7,sample/Beige Kaftan Kurti,
+black-printed-kurti,Black Printed Kurti,Kurtis,SAMPLE: block-printed kurti.,Black,#1C1C1C,S|M|L,179900,8,sample/Black Printed Kurti,
+coral-sleeveless-kurti,Coral Sleeveless Kurti,Kurtis,SAMPLE: summer sleeveless kurti.,Coral,#F0806A,S|M|L,149900,9,sample/Coral Sleeveless Kurti,
+emerald-straight-kurti,Emerald Straight Kurti,Kurtis,SAMPLE: straight-cut kurti.,Emerald,#2E6B4F,S|M|L,189900,7,sample/Emerald Straight Kurti,
+indigo-denim-kurti,Indigo Denim Kurti,Kurtis,SAMPLE: denim-finish kurti.,Indigo,#3B3F63,S|M|L,179900,8,sample/Indigo Denim Kurti,
+lavender-chikankari-kurti,Lavender Chikankari Kurti,Kurtis,SAMPLE: chikankari embroidery kurti.,Lavender,#B7A6D9,S|M|L,229900,6,sample/Lavender Chikankari Kurti,
+mustard-a-line-kurti,Mustard A-Line Kurti,Kurtis,SAMPLE: A-line flared kurti.,Mustard,#C9A227,S|M|L,169900,8,sample/Mustard A-Line Kurti,
+peach-printed-kurti,Peach Printed Kurti,Kurtis,SAMPLE: floral printed kurti.,Peach,#F2B8A0,S|M|L,169900,8,sample/Peach Printed Kurti,

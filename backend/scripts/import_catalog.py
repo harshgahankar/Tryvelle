@@ -100,17 +100,20 @@ def import_catalog(csv_path: str, media_root: str | None = None, session_factory
             for size_label in r["sizes"].split("|"):
                 size_label = size_label.strip()
                 sku = f"supplier-{slug}-{r['color_name'].strip()}-{size_label}".lower()
-                var = db.query(ProductVariant).filter_by(sku=sku).one_or_none()
-                if var is None:
+                # Check by product_color_id + size_label (unique constraint), not SKU
+                existing_var = db.query(ProductVariant).filter_by(product_color_id=color.id, size_label=size_label).one_or_none()
+                if existing_var is None:
                     db.add(ProductVariant(product_color_id=color.id, sku=sku, size_label=size_label,
                                           price_minor=int(r["price_minor"]),
                                           stock_quantity=int(r["stock_per_size"]), active=True))
                     report["variants"] += 1
                 else:
-                    var.price_minor, var.stock_quantity = int(r["price_minor"]), int(r["stock_per_size"])
+                    existing_var.price_minor = int(r["price_minor"])
+                    existing_var.stock_quantity = int(r["stock_per_size"])
+                    existing_var.active = True
             overlay = r["overlay"].strip()
             overlay_path = os.path.join(folder, overlay)
-            if os.path.isfile(overlay_path):
+            if overlay and os.path.isfile(overlay_path):
                 anchors, warnings = measure_anchors(overlay_path)
                 for w in warnings:
                     report["warnings"].append(f"{slug}: {w}")
@@ -125,7 +128,7 @@ def import_catalog(csv_path: str, media_root: str | None = None, session_factory
                     report["assets"] += 1
                 else:
                     asset.asset_key, asset.anchor_json = key, anchors
-            else:
+            elif overlay:
                 report["warnings"].append(f"{slug}: overlay missing ({overlay}) — no try-on asset")
             if os.path.isdir(folder):
                 order = 0
