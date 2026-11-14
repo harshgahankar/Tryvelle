@@ -131,6 +131,7 @@ export default function LiveTryOn() {
               )}
               <div className="absolute bottom-3 left-3 flex gap-2 flex-wrap">
                 <button onClick={s.resetCalib} className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-black/70 font-label-sm backdrop-blur"><span className="material-symbols-outlined text-[18px]">replay</span> Reset view</button>
+                <button onClick={s.capture} disabled={s.status !== "tracking"} className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-black/70 font-label-sm backdrop-blur disabled:opacity-50"><span className="material-symbols-outlined text-[18px]">photo_camera</span> Save photo</button>
                 <button onClick={s.switchCam} className="min-h-[44px] inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-black/70 font-label-sm backdrop-blur"><span className="material-symbols-outlined text-[18px]">cameraswitch</span> Switch camera</button>
               </div>
               <div className="absolute bottom-3 right-3">

@@ -1,0 +1,8 @@
+data/
+ckpt/
+out/
+.venv/
+*.png
+*.jpg
+!samples/*
+.cache/

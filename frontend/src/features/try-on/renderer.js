@@ -1,8 +1,11 @@
 // Single-canvas renderer: video, then garment, then UI guides.
 // Mirroring applied exactly once to the combined scene.
-import { coverTransform, similarityFromShoulders } from "./geometry";
+import { coverTransform, similarityFromShoulders, affineFromTriangles } from "./geometry";
 
-export function drawScene(ctx, { video, garmentImg, garmentPx, transform, W, H, dpr, showGuide = true, calib }) {
+// transform.dst (optional): [shoulderL, shoulderR, hem] canvas targets for a
+// hip-aware affine fit; without it the shoulder-only similarity path is used.
+// lighting: garment brightness multiplier (1 = unchanged).
+export function drawScene(ctx, { video, garmentImg, garmentPx, transform, W, H, dpr, showGuide = true, calib, lighting = 1 }) {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, W, H);
   ctx.fillStyle = "#0b0b0b";
@@ -18,21 +21,22 @@ export function drawScene(ctx, { video, garmentImg, garmentPx, transform, W, H, 
     const { scale, offX, offY } = coverTransform(vw, vh, W, H);
     ctx.drawImage(video, offX, offY, vw * scale, vh * scale);
   }
-  // garment via similarity transform + manual calibration
+  // garment: affine (shoulders + hem) or similarity (shoulders only), plus calibration
   if (garmentImg && transform && garmentPx) {
-    const span = Math.hypot(transform.Q.x - transform.P.x, transform.Q.y - transform.P.y) || 1;
-    const sMul = calib?.scale ?? 1;
-    const ox = (calib?.offsetX ?? 0) * span;
-    const oy = (calib?.offsetY ?? 0) * span;
-    const base = similarityFromShoulders(garmentPx.A, garmentPx.B, transform.P, transform.Q);
-    if (base) {
-      const c = Math.cos(base.theta) * base.s * sMul;
-      const sn = Math.sin(base.theta) * base.s * sMul;
-      const tx = base.tx + ox;
-      const ty = base.ty + oy;
+    const m = garmentMatrix(garmentPx, transform, calib);
+    if (m) {
       ctx.setTransform(dpr * -1, 0, 0, dpr, dpr * W, 0); // keep mirror for garment
-      ctx.transform(c, sn, -sn, c, tx * dpr, ty * dpr);
+      ctx.transform(m.a, m.b, m.c, m.d, m.e * dpr, m.f * dpr);
+      // Soft contact shadow + light matching so the PNG doesn't look pasted on.
+      // Shadow params are in device px and ignore the transform.
+      ctx.shadowColor = "rgba(0,0,0,0.35)";
+      ctx.shadowBlur = 14 * dpr;
+      ctx.shadowOffsetY = 4 * dpr;
+      const b = Math.round(lighting * 100) / 100;
+      if (b !== 1 && "filter" in ctx) ctx.filter = `brightness(${b}) saturate(${Math.min(1, 0.6 + 0.4 * b).toFixed(2)})`;
       ctx.drawImage(garmentImg, 0, 0);
+      ctx.filter = "none";
+      ctx.shadowColor = "transparent";
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
   }
@@ -52,4 +56,23 @@ export function drawScene(ctx, { video, garmentImg, garmentPx, transform, W, H, 
     ctx.stroke();
     ctx.restore();
   }
+}
+
+// Garment-px -> canvas-CSS-px matrix {a,b,c,d,e,f}, or null.
+export function garmentMatrix(garmentPx, transform, calib) {
+  const { P, Q } = transform;
+  const span = Math.hypot(Q.x - P.x, Q.y - P.y) || 1;
+  const sMul = calib?.scale ?? 1;
+  const ox = (calib?.offsetX ?? 0) * span;
+  const oy = (calib?.offsetY ?? 0) * span;
+  if (transform.dst && garmentPx.H) {
+    const c = { x: (transform.dst[0].x + transform.dst[1].x) / 2, y: (transform.dst[0].y + transform.dst[1].y) / 2 };
+    const dst = transform.dst.map((p) => ({ x: c.x + (p.x - c.x) * sMul + ox, y: c.y + (p.y - c.y) * sMul + oy }));
+    return affineFromTriangles([garmentPx.A, garmentPx.B, garmentPx.H], dst);
+  }
+  const base = similarityFromShoulders(garmentPx.A, garmentPx.B, P, Q);
+  if (!base) return null;
+  const c = Math.cos(base.theta) * base.s * sMul;
+  const sn = Math.sin(base.theta) * base.s * sMul;
+  return { a: c, b: sn, c: -sn, d: c, e: base.tx + ox, f: base.ty + oy };
 }

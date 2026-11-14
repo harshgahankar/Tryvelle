@@ -7,7 +7,9 @@ import { createPoseAdapter } from "./poseAdapter";
 import {
   mapLandmarkToCanvas, validateShoulders, smoothTransform,
   extractShoulders, isStale, similarityFromShoulders,
+  extractHips, hipMidpoint, hemTarget, smoothPoints,
 } from "./geometry";
+import { createLightSampler } from "./lighting";
 import { drawScene } from "./renderer";
 import { anchorPoints } from "./assetCache";
 
@@ -17,7 +19,7 @@ export default function useTryOnSession() {
   const garmentRef = useRef(null); // { img, anchors } | null
   const calibRef = useRef({ scale: 1, offsetX: 0, offsetY: 0 });
   const guideRef = useRef(true);
-  const loopRef = useRef({ raf: 0, lastInfer: 0, lastOk: 0, smooth: null, transform: null });
+  const loopRef = useRef({ raf: 0, lastInfer: 0, lastOk: 0, smooth: null, transform: null, dst: null, light: 1, lastLight: 0, hideGuide: false });
   const poseRef = useRef(null);
 
   const [status, setStatus] = useState("idle");
@@ -41,6 +43,7 @@ export default function useTryOnSession() {
     poseRef.current = null;
     loopRef.current.smooth = null;
     loopRef.current.transform = null;
+    loopRef.current.dst = null;
   }, []);
 
   useEffect(() => () => cleanup(), [cleanup]);
@@ -88,6 +91,7 @@ export default function useTryOnSession() {
     st.lastOk = performance.now();
     let frames = 0;
     let t0 = performance.now();
+    const sampleLight = createLightSampler();
 
     const tick = async () => {
       const video = videoRef.current;
@@ -116,10 +120,12 @@ export default function useTryOnSession() {
                 const g = garmentRef.current;
                 let A;
                 let B;
+                let Hm = null;
                 if (g) {
                   const pts = anchorPoints(g.anchors, g.img.naturalWidth, g.img.naturalHeight);
                   A = pts.A;
                   B = pts.B;
+                  Hm = pts.H ?? null;
                 } else {
                   A = { x: 0, y: 0 };
                   B = { x: 100, y: 0 };
@@ -128,6 +134,15 @@ export default function useTryOnSession() {
                 if (base) {
                   st.smooth = smoothTransform(st.smooth, { s: base.s, theta: base.theta, tx: base.tx, ty: base.ty }, 100);
                   st.transform = { ...st.smooth, P, Q };
+                  if (Hm) {
+                    // Hip-aware fit: hem follows torso lean/length when hips are visible.
+                    const map = (l) => mapLandmarkToCanvas(l, vw, vh, rect.width, rect.height, false);
+                    const hip = hipMidpoint(extractHips(lms), map);
+                    st.dst = smoothPoints(st.dst, [P, Q, hemTarget(base, Hm, P, Q, hip)], 100);
+                    st.transform.dst = st.dst;
+                    st.transform.P = st.dst[0];
+                    st.transform.Q = st.dst[1];
+                  }
                   setStatus((prev) => (prev === "tracking" ? prev : "tracking"));
                 }
               } else if (v.reason === "low-confidence") {
@@ -140,7 +155,13 @@ export default function useTryOnSession() {
       if (isStale(st.lastOk, now)) {
         st.transform = null;
         st.smooth = null; // never persist stale tracking
+        st.dst = null;
         setStatus((p) => (p === "tracking" ? "waiting" : p));
+      }
+      if (now - st.lastLight > 500) {
+        st.lastLight = now;
+        const b = sampleLight(video);
+        if (b) st.light += (b - st.light) * 0.5; // ease, avoid flicker
       }
       const dpr = Math.min(devicePixelRatio || 1, 2);
       const rect = canvas.getBoundingClientRect();
@@ -153,7 +174,8 @@ export default function useTryOnSession() {
       drawScene(ctx, {
         video,
         garmentImg: g?.img ?? null,
-        showGuide: guideRef.current,
+        showGuide: guideRef.current && !st.hideGuide,
+        lighting: st.light,
         garmentPx: g ? anchorPoints(g.anchors, g.img.naturalWidth, g.img.naturalHeight) : null,
         transform: g ? st.transform : null,
         W: rect.width,
@@ -189,7 +211,36 @@ export default function useTryOnSession() {
     await start(next); // old stream stopped inside start
   }, [cameras, deviceId, start]);
 
+  // Save the current frame (without guides) as a PNG on the device.
+  // Nothing is uploaded: Web Share hands the file to the OS share sheet.
+  const capture = useCallback(async () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const st = loopRef.current;
+    st.hideGuide = true;
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    const blob = await new Promise((r) => canvas.toBlob(r, "image/png"));
+    st.hideGuide = false;
+    if (!blob) return;
+    const file = new File([blob], `tryvelle-tryon-${Date.now()}.png`, { type: "image/png" });
+    try {
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title: "My Tryvelle try-on" });
+        return;
+      }
+    } catch (e) {
+      if (e?.name === "AbortError") return;
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, []);
+
   return {
+    capture,
     status, error, note, fps, videoRef, canvasRef,
     start, close, switchCam, cameras, deviceId, setDeviceId,
     calib, setCalib, resetCalib, showGuide, setShowGuide, setGarment,

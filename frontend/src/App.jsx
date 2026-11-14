@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { ShopProvider } from "./store/ShopContext";
 import { AuthProvider } from "./store/AuthContext";
+import { WishlistProvider } from "./store/WishlistContext";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -22,7 +23,7 @@ function StorefrontLayout() {
   return (
     <div className="bg-background text-on-surface font-body-md min-h-screen flex flex-col antialiased">
       <Header />
-      <main className="w-full pt-20 flex-1 flex flex-col">
+      <main className="w-full pt-[148px] md:pt-24 flex-1 flex flex-col">
         <Outlet />
       </main>
       <Footer />
@@ -46,6 +47,7 @@ export default function App() {
     <ShopProvider>
       <AuthProvider>
       <BrowserRouter>
+      <WishlistProvider>
         <Routes>
           <Route element={<StorefrontLayout />}>
             <Route path="/" element={<Home />} />
@@ -70,6 +72,7 @@ export default function App() {
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+      </WishlistProvider>
       </BrowserRouter>
       </AuthProvider>
     </ShopProvider>

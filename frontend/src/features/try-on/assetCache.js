@@ -26,7 +26,9 @@ export function clearGarmentCache() {
 // Normalized API anchors -> source-image pixels.
 export function anchorPoints(anchors, w, h) {
   const px = (p) => ({ x: p.x * w, y: p.y * h });
-  return { A: px(anchors.left_shoulder), B: px(anchors.right_shoulder) };
+  const out = { A: px(anchors.left_shoulder), B: px(anchors.right_shoulder) };
+  if (anchors.hem_center) out.H = px(anchors.hem_center);
+  return out;
 }
 
 // Pick the published asset for a color, or null (caller shows missing-asset state).

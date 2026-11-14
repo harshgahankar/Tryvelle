@@ -62,6 +62,7 @@ def list_products(
     max_price_minor: int | None = Query(default=None, ge=0),
     color: str | None = None,
     size: str | None = None,
+    try_on: bool | None = None,
     sort: str = Query(default="featured", pattern="^(featured|price_asc|price_desc)$"),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=12, ge=1, le=100),
@@ -85,6 +86,8 @@ def list_products(
         if color and not any(color.lower() in c.name.lower() for c in colors):
             continue
         if size and not any(v.size_label == size for c in colors for v in c.variants):
+            continue
+        if try_on and not any(c.try_on_available for c in colors):
             continue
         prices = [v.price_minor for c in colors for v in c.variants]
         lo = min(prices)

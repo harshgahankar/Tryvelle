@@ -1,42 +1,59 @@
 import { Link } from "react-router-dom";
-import { inr } from "../data/products";
+import { minorToInr } from "../lib/api";
+import { useWishlist } from "../store/WishlistContext";
+import { sortSizes } from "../lib/sizes";
 
-export default function ProductCard({ p }) {
+const FILLED = { fontVariationSettings: "'FILL' 1" };
+
+// Takes a raw API list item. Second photo shows on hover (desktop).
+export default function ProductCard({ item }) {
+  const { has, toggle } = useWishlist();
+  const saved = has(item.id);
+  const [p1, p2] = item.photos ?? [];
+  const sizes = sortSizes([...new Set(item.colors.flatMap((c) => c.variants.filter((v) => v.stock_quantity > 0).map((v) => v.size_label)))]);
+  const soldOut = sizes.length === 0;
   return (
-    <article className="group flex flex-col bg-surface rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all">
-      <div className="relative aspect-[3/4] w-full bg-surface-container overflow-hidden">
-        <img src={p.img} alt={p.name} className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300" loading="lazy" />
-        <div className="absolute top-3 left-3">
-          <span className="inline-flex items-center gap-1 rounded bg-surface/95 px-2 py-1 font-caption font-semibold shadow-sm">
-            {p.tryOn && <span className="material-symbols-outlined text-primary-container text-[14px]">videocam</span>}
-            {p.badge}
+    <article className="group relative flex flex-col bg-surface">
+      <Link to={`/product/${item.slug}`} className="relative block aspect-[3/4] w-full bg-surface-container overflow-hidden rounded-md">
+        {p1 && <img src={p1.url} alt={p1.alt_text || item.title} loading="lazy" className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${p2 ? "sm:group-hover:opacity-0" : ""}`} />}
+        {p2 && <img src={p2.url} alt="" loading="lazy" className="absolute inset-0 w-full h-full object-cover opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300" />}
+        {item.try_on_available && (
+          <span className="absolute top-2 left-2 inline-flex items-center gap-1 rounded-sm bg-white/95 px-1.5 py-0.5 text-[11px] font-semibold tracking-wide text-primary-container shadow-sm">
+            <span className="material-symbols-outlined text-[14px]">videocam</span> TRY ON
           </span>
-        </div>
-        {p.tryOn && (
-          <Link to={`/try-on/setup?product=${p.slug}`} className="absolute inset-x-3 bottom-3 hidden group-hover:flex h-10 items-center justify-center gap-2 rounded-lg bg-black/70 text-white font-label-sm backdrop-blur hover:bg-black">
-            <span className="material-symbols-outlined text-[18px]">videocam</span> Try on camera
+        )}
+        {soldOut && <span className="absolute inset-x-0 bottom-0 bg-white/90 py-1.5 text-center text-[12px] font-semibold text-secondary">OUT OF STOCK</span>}
+      </Link>
+      <button
+        onClick={() => toggle(item.id)}
+        aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
+        aria-pressed={saved}
+        className="absolute top-2 right-2 w-9 h-9 rounded-full bg-white/90 shadow-sm flex items-center justify-center hover:scale-105 transition-transform"
+      >
+        <span className={`material-symbols-outlined text-[20px] ${saved ? "text-primary-container" : "text-on-surface"}`} style={saved ? FILLED : undefined}>favorite</span>
+      </button>
+      <div className="pt-2.5 pb-1 px-0.5">
+        <p className="text-[13px] font-bold text-on-surface">Tryvelle</p>
+        <h3 className="text-[13px] text-secondary truncate"><Link to={`/product/${item.slug}`}>{item.title}</Link></h3>
+        <p className="mt-1 text-[14px] font-bold">{minorToInr(item.min_price_minor)}</p>
+        <p className="mt-0.5 text-[11px] text-secondary truncate">{soldOut ? "Sold out" : `Sizes: ${sizes.join(", ")}`}</p>
+        {item.try_on_available && (
+          <Link to={`/try-on/setup?product=${item.slug}`} className="mt-2 flex sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 h-9 items-center justify-center gap-1.5 rounded border border-on-surface text-[12px] font-semibold tracking-wide hover:bg-on-surface hover:text-surface transition">
+            <span className="material-symbols-outlined text-[16px]">videocam</span> TRY IT ON
           </Link>
         )}
       </div>
-      <div className="p-space-md flex flex-col flex-1 justify-between gap-space-sm">
-        <div>
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-product-title font-semibold group-hover:text-primary"><Link to={`/product/${p.slug}`}>{p.name}</Link></h3>
-            <span className="font-label-md font-bold shrink-0">{inr(p.price)}</span>
-          </div>
-          <p className="font-body-sm text-secondary mt-1">{p.fabric}</p>
-        </div>
-        <div className="flex items-center justify-between pt-1">
-          <div className="flex items-center gap-1.5">
-            {p.colors.map((c) => (
-              <span key={c.name} title={c.name} className="w-4 h-4 rounded-full shadow-sm border border-black/10" style={{ background: c.hex }} />
-            ))}
-          </div>
-          <Link to={`/product/${p.slug}`} className="font-caption font-semibold flex items-center gap-1 hover:text-primary-container">
-            Preview <span className="material-symbols-outlined text-[16px]">visibility</span>
-          </Link>
-        </div>
-      </div>
     </article>
+  );
+}
+
+export function ProductCardSkeleton() {
+  return (
+    <div aria-hidden="true">
+      <div className="aspect-[3/4] rounded-md bg-surface-container animate-pulse" />
+      <div className="mt-2.5 h-3 w-1/3 rounded bg-surface-container animate-pulse" />
+      <div className="mt-2 h-3 w-2/3 rounded bg-surface-container animate-pulse" />
+      <div className="mt-2 h-3 w-1/4 rounded bg-surface-container animate-pulse" />
+    </div>
   );
 }

@@ -87,3 +87,11 @@ def test_draft_hidden_and_assets_published_only(client):
     other = client.get("/api/v1/products").json()["items"]
     plain = next(i for i in other if i["slug"] == "beige-linen-shirt")
     assert client.get(f"/api/v1/products/{plain['id']}/try-on-assets").json()["items"] == []
+
+
+def test_try_on_filter(client):
+    all_items = client.get("/api/v1/products?page_size=100").json()["items"]
+    body = client.get("/api/v1/products?try_on=true&page_size=100").json()
+    assert body["items"], "seed should include try-on products"
+    assert all(i["try_on_available"] for i in body["items"])
+    assert body["total"] == sum(1 for i in all_items if i["try_on_available"])

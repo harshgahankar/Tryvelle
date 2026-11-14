@@ -1,183 +1,191 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import ProductCard from "../components/ProductCard";
-import { products, categories, HERO_IMG, DETAIL_IMG, TRYON_STAGE_IMG, EDITORIAL_IMG } from "../data/products";
-import { api, toCard } from "../lib/api";
+import ProductCard, { ProductCardSkeleton } from "../components/ProductCard";
+import { api } from "../lib/api";
 
-export default function Home() {
-  const [arrivals, setArrivals] = useState(products.slice(0, 4));
+function useCatalog() {
+  const [items, setItems] = useState(null);
+  const [error, setError] = useState("");
   useEffect(() => {
     let live = true;
-    api.products({ page_size: 4 })
-      .then((d) => live && d.items.length && setArrivals(d.items.map(toCard)))
-      .catch(() => { /* mock fallback stays */ });
+    api.products({ page_size: 60 })
+      .then((d) => live && setItems(d.items))
+      .catch((e) => live && (setError(e.message), setItems([])));
     return () => { live = false; };
   }, []);
-  return (
-    <div className="flex flex-col w-full">
-      {/* SECTION 1: SPLIT EDITORIAL HERO (frontend.html ~L6-75) */}
-      <section className="relative w-full max-w-7xl mx-auto px-margin-tablet lg:px-margin-desktop pt-space-xl pb-space-3xl overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-xl lg:gap-space-2xl items-center">
-          <div className="lg:col-span-7 flex flex-col justify-center space-y-space-lg">
-            <div className="flex items-center gap-space-xs text-secondary">
-              <span className="inline-block w-2 h-2 rounded-full bg-primary-container" />
-              <span className="font-caption uppercase tracking-widest font-semibold">Capsule 04 / Autumn In-Studio</span>
-            </div>
-            <h1 className="font-hero-desktop text-hero-mobile lg:text-hero-desktop tracking-tight leading-none">Find your next favourite.</h1>
-            <p className="font-body-lg text-secondary max-w-xl leading-relaxed">Explore everyday pieces. Preview selected styles on camera before you choose. Tactile silhouettes designed for effortless posture and enduring ease.</p>
-            <div className="pt-space-xs flex flex-wrap items-center gap-space-md">
-              <Link to="/shop" className="inline-flex items-center justify-center gap-2 h-12 px-space-lg rounded-lg bg-primary-container hover:bg-primary text-on-primary font-label-md transition-colors shadow-sm">
-                Shop collection <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-              </Link>
-              <Link to="/try-on/setup" className="inline-flex items-center gap-2 h-12 px-space-md font-label-md group">
-                Learn about Try on <span className="material-symbols-outlined text-[18px] group-hover:translate-x-1 transition-transform">arrow_right_alt</span>
-              </Link>
-            </div>
-            <div className="pt-space-md flex items-center gap-space-xl text-secondary">
-              <div><div className="font-headline-sm font-bold text-on-surface">100%</div><div className="font-caption uppercase tracking-wider">Unprocessed Cottons</div></div>
-              <div className="w-1 h-8 bg-surface-container-high rounded-full" />
-              <div><div className="font-headline-sm font-bold text-on-surface">Local-First</div><div className="font-caption uppercase tracking-wider">Zero Image Telemetry</div></div>
-            </div>
-          </div>
-          <div className="lg:col-span-5 relative mt-space-lg lg:mt-0">
-            <div className="absolute -top-12 -right-12 w-72 h-72 rounded-full bg-surface-container-high blur-3xl pointer-events-none -z-10" />
-            <div className="relative w-full aspect-[3/4] rounded-xl overflow-hidden bg-surface-container shadow-md">
-              <img src={HERO_IMG} alt="Ecru heavyweight relaxed crewneck editorial" className="w-full h-full object-cover object-center" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-              <div className="absolute bottom-space-md left-space-md text-white">
-                <span className="font-caption tracking-widest uppercase opacity-80">Lookbook Plate 09</span>
-                <p className="font-product-title">Heavyweight Relaxed Crewneck in Ecru</p>
-              </div>
-            </div>
-            <div className="absolute -bottom-8 -left-6 w-44 sm:w-56 rounded-lg bg-surface p-space-xs shadow-xl hidden sm:block">
-              <div className="relative aspect-square w-full rounded overflow-hidden bg-surface-container-low mb-space-xs">
-                <img src={DETAIL_IMG} alt="Fabric macro" className="w-full h-full object-cover" />
-                <span className="absolute top-2 left-2 px-2 py-0.5 rounded bg-surface font-caption font-semibold">Detail</span>
-              </div>
-              <div className="px-1 pb-1"><p className="font-label-sm font-semibold">380 GSM Ring-Spun</p><p className="font-caption text-secondary">Brushed fleece interior</p></div>
-            </div>
-            <div className="absolute top-6 -right-3 rounded-lg bg-surface/90 backdrop-blur-md px-3 py-2 shadow-md hidden md:flex items-center gap-2">
-              <span className="material-symbols-outlined text-primary-container text-[18px]">photo_camera</span>
-              <span className="font-caption font-semibold tracking-tight">Camera Simulation Ready</span>
-            </div>
-          </div>
-        </div>
-      </section>
+  return { items, error };
+}
 
-      {/* SECTION 2: CATEGORY STRIP */}
-      <section className="w-full bg-surface-container-low py-space-xl">
-        <div className="max-w-7xl mx-auto px-margin-tablet lg:px-margin-desktop">
-          <div className="flex items-center justify-between pb-space-md">
-            <span className="font-label-sm uppercase tracking-widest text-secondary font-semibold">Studio Categories</span>
-            <span className="font-caption text-secondary">4 Distinct Silhouettes</span>
+const photo = (p, i = 0) => p?.photos?.[i]?.url ?? p?.photos?.[0]?.url;
+
+function HeroCarousel({ items }) {
+  const slides = useMemo(() => {
+    const shirts = items.filter((p) => p.category.slug === "shirts");
+    const kurtis = items.filter((p) => p.category.slug === "kurtis");
+    const tryon = items.filter((p) => p.try_on_available);
+    return [
+      { key: "tryon", dark: true, eyebrow: "Only at Tryvelle", title: "Try it on. Live.", text: "Point your camera, pick a style, and see it on you in real time — before it reaches your bag.", cta: "Shop try-on styles", to: "/shop?tryon=1", pics: tryon.slice(0, 3) },
+      { key: "kurtis", eyebrow: "New season", title: "Kurtis for every day", text: "Chikankari, prints, A-lines and easy kaftans.", cta: "Shop kurtis", to: "/shop?category=kurtis", pics: kurtis.slice(0, 3) },
+      { key: "shirts", eyebrow: "Wardrobe staples", title: "Shirts that work hard", text: "Linen, oxford, denim and checks — office to weekend.", cta: "Shop shirts", to: "/shop?category=shirts", pics: shirts.slice(0, 3) },
+    ].filter((s) => s.pics.length);
+  }, [items]);
+  const [i, setI] = useState(0);
+  const paused = useRef(false);
+  useEffect(() => {
+    if (slides.length < 2) return;
+    const t = setInterval(() => { if (!paused.current) setI((x) => (x + 1) % slides.length); }, 5500);
+    return () => clearInterval(t);
+  }, [slides.length]);
+  if (!slides.length) return null;
+  const s = slides[i % slides.length];
+
+  return (
+    <section className="max-w-7xl mx-auto w-full px-4 lg:px-8 pt-4" aria-roledescription="carousel"
+      onMouseEnter={() => { paused.current = true; }} onMouseLeave={() => { paused.current = false; }}>
+      <div className={`relative overflow-hidden rounded-xl ${s.dark ? "bg-camera-surface text-white" : "bg-[#f3e9e2] text-on-surface"} transition-colors`}>
+        <div key={s.key} className="grid md:grid-cols-2 items-center gap-6 p-6 sm:p-10 lg:p-14 min-h-[380px] animate-[fadeIn_.5s_ease]">
+          <div>
+            <p className={`text-[12px] font-bold uppercase tracking-[0.2em] ${s.dark ? "text-[#ff8a80]" : "text-primary-container"}`}>{s.eyebrow}</p>
+            <h1 className="font-headline-lg text-[34px] leading-[40px] sm:text-[48px] sm:leading-[54px] mt-2">{s.title}</h1>
+            <p className={`mt-3 text-[15px] max-w-md ${s.dark ? "text-white/70" : "text-secondary"}`}>{s.text}</p>
+            <Link to={s.to} className={`mt-6 inline-flex h-12 items-center gap-2 px-7 rounded-md text-[14px] font-bold uppercase tracking-wide ${s.dark ? "bg-white text-black hover:bg-white/90" : "bg-on-surface text-white hover:bg-black"}`}>
+              {s.cta} <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+            </Link>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-space-sm sm:gap-space-md">
-            {categories.map((c) => (
-              <Link key={c.name} to="/shop" className="group block rounded-xl bg-surface p-space-md shadow-sm hover:shadow-md transition-all">
-                <div className="flex items-center justify-between mb-space-sm">
-                  <span className={`font-caption font-semibold uppercase tracking-wider ${c.tag === "Interactive" ? "text-primary-container" : "text-secondary"}`}>{c.tag}</span>
-                  <span className="material-symbols-outlined text-secondary group-hover:translate-x-0.5 transition-all text-[20px]">north_east</span>
-                </div>
-                <h2 className="font-product-title font-semibold group-hover:text-primary-container">{c.name}</h2>
-                <p className="font-caption text-secondary mt-1">{c.note}</p>
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            {s.pics.map((p, k) => (
+              <Link key={p.slug} to={`/product/${p.slug}`} className={`block rounded-lg overflow-hidden aspect-[3/4] bg-white/10 ${k === 1 ? "translate-y-4" : ""}`}>
+                <img src={photo(p)} alt={p.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
               </Link>
             ))}
           </div>
         </div>
-      </section>
-
-      {/* SECTION 3: NEW ARRIVALS */}
-      <section className="w-full max-w-7xl mx-auto px-margin-tablet lg:px-margin-desktop py-space-3xl" id="new-arrivals">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-space-xl gap-space-sm">
-          <div><span className="font-caption uppercase tracking-widest text-primary-container font-semibold">Studio Release 01</span>
-            <h2 className="font-headline-lg tracking-tight mt-1">New Arrivals</h2></div>
-          <p className="font-body-md text-secondary max-w-md">Clean cuts crafted from unbleached organic yarns. Direct-from-studio batches measured with calibrated sizing.</p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-lg">
-          {arrivals.map((p) => <ProductCard key={p.slug} p={p} />)}
-        </div>
-      </section>
-
-      {/* SECTION 4: TRY IT ON DARK WORKSPACE */}
-      <section className="w-full bg-camera-surface text-camera-text py-space-3xl" id="try-it-on">
-        <div className="max-w-7xl mx-auto px-margin-tablet lg:px-margin-desktop">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-lg mb-space-2xl items-end">
-            <div className="lg:col-span-8 space-y-space-xs">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 font-caption"><span className="material-symbols-outlined text-warning text-[16px]">sensors</span> Local Camera Viewfinder</div>
-              <h2 className="font-headline-lg max-w-2xl">See how it fits your style before ordering.</h2>
-              <p className="font-body-lg text-white/70 max-w-xl">Real-time on-device camera preview for front-facing tops. Private, instant, and zero uploads.</p>
-            </div>
-            <div className="lg:col-span-4 flex lg:justify-end">
-              <Link to="/try-on/setup" className="h-12 px-6 rounded-lg bg-primary-container hover:bg-primary text-white font-label-md font-semibold shadow-md flex items-center gap-2">
-                <span className="material-symbols-outlined text-[20px]">videocam</span> Experience live try-on
-              </Link>
-            </div>
+        {slides.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+            {slides.map((x, k) => (
+              <button key={x.key} onClick={() => setI(k)} aria-label={`Show slide ${k + 1}`} aria-current={k === i}
+                className={`h-2 rounded-full transition-all ${k === i ? "w-6" : "w-2"} ${s.dark ? (k === i ? "bg-white" : "bg-white/40") : (k === i ? "bg-on-surface" : "bg-on-surface/30")}`} />
+            ))}
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-xl items-center">
-            <div className="lg:col-span-7 bg-[#1A1A1A] rounded-xl p-space-md shadow-2xl relative overflow-hidden">
-              <div className="flex items-center justify-between pb-space-sm text-white/60">
-                <div className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" /><span className="font-caption tracking-wider uppercase">Live Feed Sim • 60 FPS</span></div>
-                <span className="font-caption">1080 × 1920 Normalized</span>
-              </div>
-              <div className="relative aspect-video w-full rounded-lg bg-[#0E0E0E] overflow-hidden flex items-center justify-center">
-                <img src={TRYON_STAGE_IMG} alt="Camera preview" className="w-full h-full object-cover opacity-60" />
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" fill="none" viewBox="0 0 400 300"><path d="M160 80 Q200 65 240 80 Q280 110 290 180 L280 270 L120 270 L110 180 Q120 110 160 80 Z" stroke="rgba(255,255,255,0.3)" strokeDasharray="4 4" strokeWidth="1.5" /><line x1="120" x2="280" y1="120" y2="120" stroke="rgba(255,255,255,0.2)" strokeDasharray="2 2" /><line x1="200" x2="200" y1="60" y2="280" stroke="rgba(255,255,255,0.2)" /><circle cx="200" cy="120" fill="#AF2424" r="4" /></svg>
-                <div className="absolute top-4 left-1/2 -translate-x-1/2 px-3.5 py-1.5 rounded-full bg-[#181818]/90 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-amber-400 text-[18px]">straighten</span>
-                  <span className="font-caption text-white font-medium">Step back so your shoulders are visible</span>
-                </div>
-                <div className="absolute bottom-6 left-6 right-6 p-space-sm rounded-lg bg-[#181818]/80 backdrop-blur-md flex items-center justify-between">
-                  <div className="flex items-center gap-space-sm">
-                    <div className="w-10 h-10 rounded bg-[#2C2C2B] flex items-center justify-center"><span className="material-symbols-outlined text-white text-[20px]">checkroom</span></div>
-                    <div><div className="font-label-sm text-white font-semibold">Everyday Cotton Tee</div><div className="font-caption text-white/60">Selected Size: M (Relaxed fit)</div></div>
-                  </div>
-                  <span className="px-2.5 py-1 rounded bg-white/10 font-caption text-white">Tracking lock</span>
-                </div>
-              </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function SectionTitle({ children, to, link = "View all" }) {
+  return (
+    <div className="flex items-end justify-between mb-5">
+      <h2 className="text-[18px] sm:text-[22px] font-bold uppercase tracking-[0.12em]">{children}</h2>
+      {to && <Link to={to} className="text-[13px] font-semibold text-primary-container hover:underline">{link} →</Link>}
+    </div>
+  );
+}
+
+export default function Home() {
+  const { items, error } = useCatalog();
+  const loading = items === null;
+  const list = items ?? [];
+  const tryon = list.filter((p) => p.try_on_available);
+  const byCat = (slug) => list.find((p) => p.category.slug === slug);
+  const cats = [
+    { slug: "shirts", name: "Shirts", sub: "Men", p: byCat("shirts"), to: "/shop?category=shirts" },
+    { slug: "kurtis", name: "Kurtis", sub: "Women", p: byCat("kurtis"), to: "/shop?category=kurtis" },
+    { slug: "tryon", name: "Try-On Ready", sub: `${tryon.length} styles`, p: tryon[0], to: "/shop?tryon=1" },
+    { slug: "under", name: "Under ₹1,500", sub: "Budget picks", p: [...list].sort((a, b) => a.min_price_minor - b.min_price_minor).find((p) => p !== tryon[0] && p.min_price_minor <= 150000), to: "/shop?max=1500" },
+  ];
+
+  return (
+    <div className="flex flex-col w-full pb-12">
+      {loading ? (
+        <div className="max-w-7xl mx-auto w-full px-4 lg:px-8 pt-4"><div className="h-[380px] rounded-xl bg-surface-container animate-pulse" /></div>
+      ) : <HeroCarousel items={list} />}
+
+      {error && (
+        <div className="max-w-7xl mx-auto w-full px-4 lg:px-8 mt-6" role="alert">
+          <div className="rounded-lg border border-border bg-surface-container-low p-4 text-[14px]">Catalog is offline right now: {error}</div>
+        </div>
+      )}
+
+      <section className="max-w-7xl mx-auto w-full px-4 lg:px-8 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 rounded-xl border border-border bg-white p-4 text-[13px]">
+          {[["videocam", "Live camera try-on", "Runs on your device — never uploaded"], ["straighten", "Size chart on every style", "Pick the right fit the first time"], ["shopping_bag", "Bag saved on this device", "Come back any time"]].map(([i, t, d]) => (
+            <div key={t} className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-primary-container">{i}</span>
+              <div><p className="font-bold">{t}</p><p className="text-secondary text-[12px]">{d}</p></div>
             </div>
-            <div className="lg:col-span-5 flex flex-col gap-space-lg">
-              {[["1", "Select garment", "Pick any silhouette marked with the try-on badge."], ["2", "Stand facing camera", "Enable your front camera in good daylight. Align shoulders within guidelines."], ["3", "Review look", "Inspect proportion and color pairing before adding to bag."]].map(([n, t, d]) => (
-                <div key={n} className="p-space-lg rounded-lg bg-[#1A1A1A]">
-                  <div className="flex items-center gap-space-md mb-1"><span className={`flex items-center justify-center w-7 h-7 rounded-full font-caption font-bold ${n === "2" ? "bg-primary-container text-white" : "bg-white/10 text-white"}`}>{n}</span><h3 className="font-headline-sm text-white">{t}</h3></div>
-                  <p className="font-body-sm text-white/70 pl-11">{d}</p>
+          ))}
+        </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto w-full px-4 lg:px-8 mt-12">
+        <SectionTitle>Shop by category</SectionTitle>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-5">
+          {cats.map((c) => (
+            <Link key={c.slug} to={c.to} className="group relative block aspect-[4/5] rounded-xl overflow-hidden bg-surface-container">
+              {c.p && <img src={photo(c.p)} alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-transparent" />
+              <div className="absolute bottom-0 inset-x-0 p-4 text-white">
+                <p className="text-[11px] uppercase tracking-widest text-white/80">{c.sub}</p>
+                <p className="text-[18px] font-bold">{c.name}</p>
+                <p className="text-[12px] font-semibold mt-1 opacity-0 group-hover:opacity-100 transition">Shop now →</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {(loading || tryon.length > 0) && (
+        <section className="mt-14 bg-camera-surface text-white py-10">
+          <div className="max-w-7xl mx-auto w-full px-4 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+              <div>
+                <p className="text-[12px] font-bold uppercase tracking-[0.2em] text-[#ff8a80]">Try before you buy</p>
+                <h2 className="text-[24px] sm:text-[30px] font-bold mt-1">See it on you in seconds</h2>
+                <ol className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-[13px] text-white/70">
+                  <li>1 · Pick a style</li><li>2 · Allow camera</li><li>3 · Step back, see it live</li>
+                </ol>
+              </div>
+              <Link to="/shop?tryon=1" className="self-start md:self-auto h-11 inline-flex items-center px-6 rounded-md bg-white text-black text-[13px] font-bold uppercase tracking-wide">All try-on styles</Link>
+            </div>
+            <div className="flex gap-4 overflow-x-auto snap-x pb-2 -mx-4 px-4 [scrollbar-width:thin]">
+              {(loading ? [0, 1, 2, 3, 4] : tryon).map((p, k) => loading ? (
+                <div key={k} className="w-44 sm:w-52 shrink-0 aspect-[3/4] rounded-lg bg-white/10 animate-pulse" />
+              ) : (
+                <div key={p.slug} className="w-44 sm:w-52 shrink-0 snap-start">
+                  <Link to={`/try-on/setup?product=${p.slug}`} className="group relative block aspect-[3/4] rounded-lg overflow-hidden bg-white/5">
+                    <img src={photo(p)} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <span className="absolute bottom-2 inset-x-2 h-9 flex items-center justify-center gap-1.5 rounded-md bg-white/95 text-black text-[12px] font-bold">
+                      <span className="material-symbols-outlined text-[16px]">videocam</span> TRY IT ON
+                    </span>
+                  </Link>
+                  <p className="mt-2 text-[13px] truncate">{p.title}</p>
+                  <p className="text-[14px] font-bold">₹{(p.min_price_minor / 100).toLocaleString("en-IN")}</p>
                 </div>
               ))}
             </div>
           </div>
+        </section>
+      )}
+
+      <section className="max-w-7xl mx-auto w-full px-4 lg:px-8 mt-14">
+        <SectionTitle to="/shop">Trending now</SectionTitle>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-3 gap-y-8 sm:gap-x-5">
+          {loading
+            ? Array.from({ length: 10 }, (_, k) => <ProductCardSkeleton key={k} />)
+            : list.slice(0, 10).map((p) => <ProductCard key={p.slug} item={p} />)}
         </div>
       </section>
 
-      {/* SECTION 5: PHILOSOPHY + NEWSLETTER */}
-      <section className="w-full max-w-7xl mx-auto px-margin-tablet lg:px-margin-desktop py-space-3xl">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-space-2xl items-center">
-          <div className="lg:col-span-7 space-y-space-md">
-            <div className="flex items-center gap-2 text-primary-container"><span className="material-symbols-outlined text-[20px]">menu_book</span><span className="font-label-sm font-semibold uppercase tracking-wider">Garment Journal</span></div>
-            <h2 className="font-headline-lg leading-snug">The Philosophy of Everyday Wear: Durable organic cottons and restrained silhouettes.</h2>
-            <div className="space-y-space-sm text-secondary font-body-md leading-relaxed">
-              <p>Clothing should not be an ephemeral costume. We engineer each piece with dense long-staple cotton yarns and calibrated seam reinforcements.</p>
-              <p>By designing garments with unhurried proportion we create clothing that speaks through subtle posture rather than loud logos.</p>
-            </div>
-            <div className="p-space-md rounded-lg bg-surface-container-low"><p className="font-label-sm font-semibold">"Cut for presence, tailored for ease."</p><p className="font-caption text-secondary">Studio Atelier Notes, Batch Autumn 2025</p></div>
-          </div>
-          <div className="lg:col-span-5 relative">
-            <div className="aspect-[4/5] w-full rounded-xl overflow-hidden bg-surface-container shadow-md"><img src={EDITORIAL_IMG} alt="Atelier workbench" className="w-full h-full object-cover" /></div>
-            <div className="absolute -bottom-6 -left-6 bg-surface p-space-md rounded-lg shadow-lg max-w-xs hidden sm:block">
-              <div className="flex items-center gap-2 text-success font-label-sm font-semibold mb-1"><span className="material-symbols-outlined text-[18px]">eco</span> GOTS-Certified Fibers</div>
-              <p className="font-caption text-secondary">Pre-shrunk at low temperatures to ensure stability through repeat laundering.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section className="w-full max-w-7xl mx-auto px-margin-tablet lg:px-margin-desktop pb-space-3xl">
-        <div className="rounded-xl bg-surface-container p-space-xl sm:p-space-2xl grid grid-cols-1 lg:grid-cols-12 gap-space-lg items-center">
-          <div className="lg:col-span-7"><span className="font-caption uppercase tracking-widest text-primary-container font-semibold">Studio Dispatch</span>
-            <h2 className="font-headline-md tracking-tight">Curated capsule announcements, direct to your inbox.</h2></div>
-          <div className="lg:col-span-5">
-            <form className="flex flex-col sm:flex-row gap-2" onSubmit={(e) => e.preventDefault()}>
-              <input required type="email" placeholder="Enter your email" className="flex-1 h-12 px-4 rounded-lg bg-surface font-body-sm focus:outline-none focus:ring-2 focus:ring-on-surface" />
-              <button className="h-12 px-6 rounded-lg bg-on-surface text-surface font-label-md font-semibold">Join Gazette</button>
-            </form>
-          </div>
+      <section className="max-w-7xl mx-auto w-full px-4 lg:px-8 mt-14">
+        <SectionTitle>Shop by budget</SectionTitle>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {[1300, 1500, 1800, 2000].map((m) => (
+            <Link key={m} to={`/shop?max=${m}`} className="rounded-xl border-2 border-dashed border-primary-container/40 bg-[#fff6f4] hover:bg-[#ffece8] p-5 text-center transition">
+              <p className="text-[12px] uppercase tracking-widest text-secondary">Under</p>
+              <p className="text-[26px] font-extrabold text-primary-container">₹{m.toLocaleString("en-IN")}</p>
+            </Link>
+          ))}
         </div>
       </section>
     </div>
