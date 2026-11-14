@@ -16,3 +16,6 @@ Note.txt
 # Dependencies / build output (also covered by frontend/.gitignore)
 node_modules/
 dist/
+
+# Claude local config
+.claude/
