@@ -46,7 +46,7 @@ export default function Cart() {
 
   return (
     <div className="max-w-7xl mx-auto px-margin-tablet lg:px-margin-desktop py-space-xl w-full">
-      <p className="font-caption text-secondary"><Link to="/" className="underline">Home</Link> / Bag ({count})</p>
+      <p className="font-caption text-secondary"><Link to="/" className="link-back">Home</Link> / Bag ({count})</p>
       <div className="flex items-end gap-3 mt-1"><h1 className="font-headline-lg">Shopping Bag</h1><span className="font-caption bg-surface-container px-2 py-1 rounded">{cart.length} lines</span></div>
       {cart.length === 0 ? (
         <div className="mt-6 p-12 text-center bg-surface border rounded-xl"><p className="font-headline-sm">Your bag is empty</p><Link to="/shop" className="mt-3 inline-flex h-11 px-5 items-center rounded-lg bg-on-surface text-surface font-label-md">Continue shopping</Link></div>
@@ -85,7 +85,7 @@ export default function Cart() {
                         <span className="w-8 text-center font-label-md">{line.qty}</span>
                         <button className="w-9 h-9" onClick={() => updateQty(i, line.qty + 1)}>+</button>
                       </div>
-                      <button onClick={() => removeItem(i)} className="font-caption underline text-secondary">Remove</button>
+                      <button onClick={() => removeItem(i)} className="btn-chip btn-chip-danger">Remove</button>
                     </div>
                   </div>
                 </div>

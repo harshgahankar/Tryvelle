@@ -56,7 +56,7 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
       <div className="bg-on-surface text-white text-center text-[12px] h-8 leading-8 px-4 truncate">
         <span className="material-symbols-outlined text-[14px] align-[-2px] mr-1">videocam</span>
-        See it on you first — try any style on your own photo with AI. <Link to="/shop?tryon=1" className="underline font-semibold">Explore</Link>
+        See it on you first — try any style on your own photo with AI. <Link to="/shop?tryon=1" className="inline-flex items-center gap-0.5 font-semibold hover:opacity-80">Explore <span className="material-symbols-outlined text-[16px]">arrow_forward</span></Link>
       </div>
       <div className="h-16 max-w-7xl mx-auto px-4 lg:px-8 flex items-center gap-4 lg:gap-8">
         <button className="lg:hidden -ml-1 p-1" aria-label="Menu" aria-expanded={menu} onClick={() => setMenu((m) => !m)}><span className="material-symbols-outlined">{menu ? "close" : "menu"}</span></button>

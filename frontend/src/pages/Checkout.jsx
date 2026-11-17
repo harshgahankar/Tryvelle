@@ -152,13 +152,13 @@ export default function Checkout() {
       </div>
     );
   }
-  if (!cart.length) return <div className="max-w-3xl mx-auto p-12 text-center"><p className="font-headline-sm">Nothing to check out</p><Link to="/shop" className="underline">Back to shop</Link></div>;
+  if (!cart.length) return <div className="max-w-3xl mx-auto p-12 text-center"><p className="font-headline-sm">Nothing to check out</p><Link to="/shop" className="btn-solid mt-4">Back to shop</Link></div>;
   if (status === "loading") return <div className="max-w-3xl mx-auto p-12 text-center" aria-busy="true"><p className="font-body-md text-secondary">Validating your bag…</p></div>;
   if (status === "error") return <div className="max-w-3xl mx-auto p-12 text-center" role="alert"><p className="font-headline-sm">Checkout unavailable</p><p className="font-body-sm text-secondary">{error}</p></div>;
 
   return (
     <div className="max-w-7xl mx-auto px-margin-tablet lg:px-margin-desktop py-space-xl w-full">
-      <p className="font-caption text-secondary"><Link to="/cart" className="underline">← Back to bag</Link> · Demo checkout</p>
+      <p className="font-caption text-secondary"><Link to="/cart" className="link-back"><span className="material-symbols-outlined text-[16px]">arrow_back</span> Back to bag</Link> · Demo checkout</p>
       <div className="mt-2 p-4 rounded-xl bg-amber-50 border border-amber-200 font-body-sm">Demo order — <strong>no payment collected</strong>. Free demo delivery.</div>
       <div className="grid lg:grid-cols-12 gap-space-xl mt-6">
         <form onSubmit={submit} className="lg:col-span-7 space-y-5">
@@ -171,7 +171,7 @@ export default function Checkout() {
               </label>
             ))}
             {!showAddrForm
-              ? <button type="button" onClick={() => setShowAddrForm(true)} className="font-label-sm underline">+ New address</button>
+              ? <button type="button" onClick={() => setShowAddrForm(true)} className="btn-chip"><span className="material-symbols-outlined text-[18px]">add</span> New address</button>
               : <div className="grid sm:grid-cols-2 gap-2">
                   <input required placeholder="Recipient" value={addr.recipient} onChange={(e) => setAddr({ ...addr, recipient: e.target.value })} className="h-11 px-3 rounded-lg border font-body-sm" />
                   <input required placeholder="Street" value={addr.line1} onChange={(e) => setAddr({ ...addr, line1: e.target.value })} className="h-11 px-3 rounded-lg border font-body-sm" />

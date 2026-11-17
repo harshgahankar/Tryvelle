@@ -22,12 +22,12 @@ export default function AdminOrders() {
   };
 
   if (!ready) return null;
-  if (!user) return <div className="max-w-3xl mx-auto px-4 py-space-2xl text-center"><Link to="/login" className="underline">Login required</Link></div>;
+  if (!user) return <div className="max-w-3xl mx-auto px-4 py-space-2xl text-center"><p className="text-secondary">Please log in to continue.</p><Link to="/login" className="btn-solid mt-4">Log in</Link></div>;
   if (user.role !== "admin") return <div className="max-w-3xl mx-auto px-4 py-space-2xl text-center"><p className="font-headline-sm">Administrators only.</p></div>;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-space-xl w-full">
-      <p className="font-caption"><Link to="/admin/products" className="underline">← Products</Link></p>
+      <p className="font-caption"><Link to="/admin/products" className="link-back"><span className="material-symbols-outlined text-[16px]">arrow_back</span> Products</Link></p>
       <h1 className="font-headline-lg mt-1">Admin · Demo orders</h1>
       {error && <p className="mt-2 font-body-sm text-danger" role="alert">{error}</p>}
       <div className="mt-4 space-y-2">

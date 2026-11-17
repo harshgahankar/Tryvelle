@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
+import Dropdown from "../components/Dropdown";
 import ProductCard, { ProductCardSkeleton } from "../components/ProductCard";
 import { api } from "../lib/api";
 import { sortSizes } from "../lib/sizes";
@@ -180,12 +181,13 @@ export default function Shop() {
                 {c.label} <span className="material-symbols-outlined text-[16px]">close</span>
               </button>
             ))}
-            <label className="ml-auto inline-flex items-center gap-2 h-10 px-3 rounded-md border border-border text-[14px]">
-              <span className="text-secondary">Sort by:</span>
-              <select value={filters.sort} onChange={(e) => set({ sort: e.target.value === "featured" ? "" : e.target.value })} className="font-bold bg-transparent focus:outline-none">
-                {SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-              </select>
-            </label>
+            <Dropdown
+              className="ml-auto"
+              label="Sort by:"
+              value={filters.sort || "featured"}
+              options={SORTS}
+              onChange={(v) => set({ sort: v === "featured" ? "" : v })}
+            />
           </div>
 
           {status === "error" && (

@@ -47,7 +47,7 @@ export default function Orders() {
   };
 
   if (!ready) return null;
-  if (!user) return <div className="max-w-3xl mx-auto px-4 py-space-2xl text-center"><Link to="/login" className="underline">Login required</Link></div>;
+  if (!user) return <div className="max-w-3xl mx-auto px-4 py-space-2xl text-center"><p className="text-secondary">Please log in to continue.</p><Link to="/login" className="btn-solid mt-4">Log in</Link></div>;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-space-xl w-full">
@@ -67,7 +67,7 @@ export default function Orders() {
               {o.items.map((i, k) => <li key={k}>{i.title} · {i.color} {i.size} × {i.quantity}</li>)}
             </ul>
             {(o.status === "demo_placed" || o.status === "demo_confirmed") && (
-              <button onClick={() => cancel(o.id)} className="mt-2 font-caption underline text-secondary">Cancel order (restores stock)</button>
+              <button onClick={() => cancel(o.id)} className="mt-3 btn-chip btn-chip-danger">Cancel order</button>
             )}
             {o.status === "pending_payment" && o.razorpay_order_id && (
               <button onClick={() => payPending(o)} className="mt-2 h-10 px-4 rounded-lg bg-primary-container text-white font-label-sm">Pay now (test mode)</button>

@@ -37,7 +37,7 @@ export default function AdminProducts() {
   };
 
   if (!ready) return null;
-  if (!user) return <div className="max-w-3xl mx-auto px-4 py-space-2xl text-center"><Link to="/login" className="underline">Login required</Link></div>;
+  if (!user) return <div className="max-w-3xl mx-auto px-4 py-space-2xl text-center"><p className="text-secondary">Please log in to continue.</p><Link to="/login" className="btn-solid mt-4">Log in</Link></div>;
   if (user.role !== "admin") return <div className="max-w-3xl mx-auto px-4 py-space-2xl text-center"><p className="font-headline-sm">Administrators only.</p></div>;
 
   return (

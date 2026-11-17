@@ -18,3 +18,28 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* Shared link/button styles (replace plain underlined text). */
+@layer components {
+  /* Small outlined action button: Retry, Edit, Remove, Continue shopping... */
+  .btn-chip {
+    @apply inline-flex items-center justify-center gap-1 h-9 px-3.5 rounded-full border border-border bg-white
+      text-[13px] font-semibold text-on-surface whitespace-nowrap transition-colors
+      hover:border-on-surface hover:bg-on-surface hover:text-white
+      focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-surface;
+  }
+  .btn-chip-danger { @apply text-danger hover:bg-danger hover:border-danger hover:text-white; }
+  /* Solid call to action (Log in, Browse the shop). */
+  .btn-solid {
+    @apply inline-flex items-center justify-center gap-1.5 h-11 px-6 rounded-lg bg-on-surface text-white
+      font-semibold text-[14px] transition-opacity hover:opacity-90;
+  }
+  /* Breadcrumb / "← Back" navigation. */
+  .link-back {
+    @apply inline-flex items-center gap-1 text-[13px] font-medium text-secondary transition-colors hover:text-on-surface;
+  }
+  /* Link inside a sentence: brand colour, underline only on hover. */
+  .link-inline {
+    @apply font-semibold text-primary-container underline-offset-4 decoration-2 hover:underline;
+  }
+}

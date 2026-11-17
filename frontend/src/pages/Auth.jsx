@@ -34,7 +34,7 @@ export function Login() {
         {error && <p className="font-body-sm text-danger" role="alert">{error}</p>}
         <button className="w-full h-12 rounded-lg bg-on-surface text-surface font-label-md font-semibold">Login</button>
       </form>
-      <p className="mt-3 font-body-sm text-secondary"><Link to="/register" className="underline">Create account</Link> · <Link to="/forgot-password" className="underline">Forgot password?</Link></p>
+      <p className="mt-3 font-body-sm text-secondary"><Link to="/register" className="link-inline">Create account</Link> · <Link to="/forgot-password" className="link-inline">Forgot password?</Link></p>
     </div>
   );
 }
@@ -62,7 +62,7 @@ export function Register() {
         {error && <p className="font-body-sm text-danger" role="alert">{error}</p>}
         <button className="w-full h-12 rounded-lg bg-on-surface text-surface font-label-md font-semibold">Register</button>
       </form>
-      <p className="mt-3 font-body-sm text-secondary"><Link to="/login" className="underline">Already have an account?</Link></p>
+      <p className="mt-3 font-body-sm text-secondary">Already have an account? <Link to="/login" className="link-inline">Log in</Link></p>
     </div>
   );
 }

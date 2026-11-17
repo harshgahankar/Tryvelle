@@ -74,7 +74,7 @@ export default function TryOnSetup() {
     return (
       <div className="max-w-3xl mx-auto px-4 py-space-2xl text-center" role="alert">
         <p className="font-headline-sm">Garment unavailable</p>
-        <Link to="/shop" className="underline">Back to shop</Link>
+        <Link to="/shop" className="btn-solid mt-4">Back to shop</Link>
       </div>
     );
   }
@@ -86,7 +86,7 @@ export default function TryOnSetup() {
 
   return (
     <div className="max-w-5xl mx-auto px-margin-tablet py-space-xl w-full">
-      <p className="font-caption text-secondary"><Link to={`/product/${p.slug}`} className="underline">← Back to {p.title}</Link></p>
+      <p className="font-caption text-secondary"><Link to={`/product/${p.slug}`} className="link-back"><span className="material-symbols-outlined text-[16px]">arrow_back</span> Back to {p.title}</Link></p>
       <div className="mt-4 rounded-2xl bg-surface border border-border overflow-hidden">
         <div className="px-6 py-4 bg-surface-container-low flex items-center gap-3">
           <span className="material-symbols-outlined text-primary-container">checkroom</span>

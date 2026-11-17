@@ -113,14 +113,14 @@ function Addresses() {
     <section className="p-5 sm:p-6 bg-white border border-border rounded-xl">
       <div className="flex items-center justify-between gap-2">
         <h2 className="font-headline-sm">Saved addresses</h2>
-        {editing !== "new" && <button onClick={() => setEditing("new")} className="font-label-md underline">+ Add address</button>}
+        {editing !== "new" && <button onClick={() => setEditing("new")} className="btn-chip"><span className="material-symbols-outlined text-[18px]">add</span> Add address</button>}
       </div>
       <p className="font-body-sm text-secondary">Pick one of these at checkout.</p>
 
       <div className="mt-4 space-y-3">
         {editing === "new" && <AddressForm initial={EMPTY} onSave={(a) => save(a)} onCancel={() => setEditing(null)} />}
         {status === "loading" && <p className="text-secondary">Loading…</p>}
-        {status === "error" && <p>Could not load addresses. <button onClick={load} className="underline">Retry</button></p>}
+        {status === "error" && <p>Could not load addresses. <button onClick={load} className="btn-chip ml-2">Retry</button></p>}
         {status === "ok" && items.length === 0 && editing !== "new" && <p className="text-secondary">No saved addresses yet.</p>}
         {items.map((a) => editing === a.id ? (
           <AddressForm key={a.id} initial={{ ...EMPTY, ...a }} onSave={(v) => save(v, a.id)} onCancel={() => setEditing(null)} />
@@ -132,9 +132,9 @@ function Addresses() {
               <p>{a.city}{a.region && `, ${a.region}`} {a.postal_code}</p>
               {a.phone && <p className="text-secondary">{a.phone}</p>}
             </div>
-            <div className="flex flex-col items-end gap-1 shrink-0 font-label-md">
-              <button onClick={() => setEditing(a.id)} className="underline">Edit</button>
-              <button onClick={() => remove(a.id)} className="underline text-danger">Delete</button>
+            <div className="flex flex-col sm:flex-row items-end sm:items-start gap-2 shrink-0">
+              <button onClick={() => setEditing(a.id)} className="btn-chip">Edit</button>
+              <button onClick={() => remove(a.id)} className="btn-chip btn-chip-danger">Delete</button>
             </div>
           </div>
         ))}
@@ -152,7 +152,7 @@ export default function Account() {
   if (!user) return (
     <div className="max-w-3xl mx-auto px-4 py-space-2xl text-center">
       <p>Sign in to see your profile.</p>
-      <Link to="/login" className="underline font-label-md">Login</Link>
+      <Link to="/login" className="btn-solid mt-4">Log in</Link>
     </div>
   );
 
