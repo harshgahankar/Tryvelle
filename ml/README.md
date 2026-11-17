@@ -101,6 +101,29 @@ Copy the checkpoint you want to `ml/ckpt/attn-final.safetensors`, then:
 - `--steps 30` (quality vs speed), `--guidance 2.5` (higher = sticks closer to the garment), `--seed` for variations.
 - Use a front-facing photo, standing, with shoulders and hips visible and plain light.
 
+## 4. Photo try-on in the website
+
+The shop's "Try it on with your photo" page uploads the shopper's photo to the backend
+(`POST /api/v1/products/{id}/try-on-photo`), which forwards it to a local model service.
+Start three terminals (from the repo root):
+
+```bash
+ml\.venv\Scripts\python ml\serve.py
+```
+
+```bash
+cd backend && ..\.venv\Scripts\python -m uvicorn app.main:app --port 8000
+```
+
+```bash
+cd frontend && npm run dev
+```
+
+`serve.py` loads the model once (~20 s), listens only on `127.0.0.1:8001`, and handles one
+photo at a time (~15–30 s each on the RTX 3050). Photos are processed in memory and never saved.
+The backend finds it through `TRYON_MODEL_URL` (default `http://127.0.0.1:8001`). Only garments
+with a published try-on asset (the `-png.png` overlay) offer photo try-on.
+
 ## Tips & known limits
 
 - **VITON-HD contains only women in tops.** Kurtis/tops on women will work best; men's shirts will be

@@ -1,21 +1,32 @@
-# Local-only prototype source (superseded by frontend/ React app — do not commit)
-frontend.html
-
-# Local-only spec docs (never pushed)
-documents/
-
-# Local virtualenv
+# Python
 .venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
 
-# Local-only personal notes (never pushed)
-Note.txt
-
-# Secrets / local env
-.env
-
-# Dependencies / build output (also covered by frontend/.gitignore)
+# Node / build
 node_modules/
 dist/
 
+# Secrets / local env (keep the .env.example files)
+.env
+.env.*
+!.env.example
+
+# Local databases
+*.db
+*.sqlite3
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
 # Claude local config
 .claude/
+
+# Local-only files (never pushed)
+frontend.html
+documents/
+Note.txt

@@ -109,19 +109,15 @@ export default function ProductDetail() {
               <p className="text-[13px] font-semibold text-[#03a685]">inclusive of all taxes</p>
             </div>
 
-            {color.try_on_available ? (
+            {(
               <Link to={`/try-on/setup?product=${p.slug}`} className="mt-5 flex items-center gap-4 rounded-xl bg-camera-surface text-white p-4 group">
-                <span className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center shrink-0"><span className="material-symbols-outlined">videocam</span></span>
+                <span className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center shrink-0"><span className="material-symbols-outlined">photo_camera</span></span>
                 <span className="flex-1">
-                  <span className="block text-[15px] font-bold">Try it on with your camera</span>
-                  <span className="block text-[12px] text-white/70">See this {color.name.toLowerCase()} {p.category.name.toLowerCase().replace(/s$/, "")} on you, live. Nothing is uploaded.</span>
+                  <span className="block text-[15px] font-bold">Try it on with your photo</span>
+                  <span className="block text-[12px] text-white/70">See this {color.name.toLowerCase()} {p.category.name.toLowerCase().replace(/s$/, "")} on you — upload or take a photo.</span>
                 </span>
                 <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
               </Link>
-            ) : (
-              <p className="mt-5 flex items-center gap-2 rounded-xl border border-dashed border-border p-3 text-[13px] text-secondary">
-                <span className="material-symbols-outlined text-[18px]">videocam_off</span> Live try-on isn’t available for this colour yet.
-              </p>
             )}
 
             {p.colors.length > 1 && (
@@ -176,7 +172,7 @@ export default function ProductDetail() {
             </div>
             <div className="mt-5 grid grid-cols-1 gap-2 text-[14px] text-on-surface/80">
               <p className="flex items-center gap-2"><span className="material-symbols-outlined text-[18px]">verified</span> Colour: {color.name}</p>
-              <p className="flex items-center gap-2"><span className="material-symbols-outlined text-[18px]">lock</span> Camera try-on runs on your device only</p>
+              <p className="flex items-center gap-2"><span className="material-symbols-outlined text-[18px]">lock</span> Try-on photos are never saved</p>
             </div>
           </div>
         </div>

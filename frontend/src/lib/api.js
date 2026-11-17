@@ -61,6 +61,26 @@ export const api = {
   product: (slug) => get(`/products/${encodeURIComponent(slug)}`),
   tryOnAssets: (id) => get(`/products/${encodeURIComponent(id)}/try-on-assets`),
   validateCart: (items) => send("/cart/validate", { body: { items } }),
+  // Upload a photo; returns a Blob (the generated try-on image).
+  tryOnPhoto: async (productId, colorId, photo) => {
+    const form = new FormData();
+    form.append("photo", photo, photo.name || "photo.jpg");
+    if (colorId) form.append("color_id", colorId);
+    let res;
+    try {
+      res = await fetch(`${BASE}/products/${encodeURIComponent(productId)}/try-on-photo`, { method: "POST", body: form });
+    } catch {
+      throw new ApiError("API_UNREACHABLE", "Could not reach the API. Start it with uvicorn (backend/README) and retry.");
+    }
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      if (!body.error && res.status === 404) {
+        throw new ApiError("TRY_ON_ROUTE_MISSING", "The API doesn't have photo try-on yet. Restart the backend (uvicorn) so it picks up the new endpoint.");
+      }
+      throw new ApiError(body.error?.code || `HTTP_${res.status}`, body.error?.message || `Try-on failed (HTTP ${res.status}).`);
+    }
+    return res.blob();
+  },
 };
 
 // Calls needing the session cookie + CSRF token (AuthContext supplies csrf).

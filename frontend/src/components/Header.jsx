@@ -56,11 +56,11 @@ export default function Header() {
     <header className="fixed top-0 left-0 right-0 z-50 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.06)]">
       <div className="bg-on-surface text-white text-center text-[12px] h-8 leading-8 px-4 truncate">
         <span className="material-symbols-outlined text-[14px] align-[-2px] mr-1">videocam</span>
-        See it on you first — live camera try-on on selected styles. <Link to="/shop?tryon=1" className="underline font-semibold">Explore</Link>
+        See it on you first — try any style on your own photo with AI. <Link to="/shop?tryon=1" className="underline font-semibold">Explore</Link>
       </div>
       <div className="h-16 max-w-7xl mx-auto px-4 lg:px-8 flex items-center gap-4 lg:gap-8">
         <button className="lg:hidden -ml-1 p-1" aria-label="Menu" aria-expanded={menu} onClick={() => setMenu((m) => !m)}><span className="material-symbols-outlined">{menu ? "close" : "menu"}</span></button>
-        <Link to="/" className="font-headline-sm text-[22px] uppercase tracking-tight shrink-0">Tryvelle</Link>
+        <Link to="/" className="flex items-center gap-2 shrink-0" aria-label="Tryvelle home"><img src="/brand/tryvelle-mark.svg" alt="" className="h-8 w-8" /><span className="font-headline-sm text-[20px] uppercase tracking-[0.12em]">Tryvelle</span></Link>
         <nav className="hidden lg:flex items-stretch h-16 gap-6">
           {NAV.map((n) => (
             <Link key={n.label} to={n.to} className={`flex items-center text-[13px] font-bold uppercase tracking-wide border-b-4 ${onShop && n.match(params) ? "border-primary-container" : "border-transparent"} hover:border-primary-container ${n.accent ? "text-primary-container" : ""}`}>{n.label}</Link>

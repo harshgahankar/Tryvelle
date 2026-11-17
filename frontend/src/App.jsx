@@ -8,11 +8,9 @@ import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import ProductDetail from "./pages/ProductDetail";
 import TryOnSetup from "./pages/TryOnSetup";
-import LiveTryOn from "./pages/LiveTryOn";
 import Cart from "./pages/Cart";
 import Checkout from "./pages/Checkout";
 import OrderConfirmation from "./pages/OrderConfirmation";
-import PrototypeTryOn from "./pages/PrototypeTryOn";
 import { Login, Register, ForgotPassword, ResetPassword } from "./pages/Auth";
 import Wishlist from "./pages/Wishlist";
 import Orders from "./pages/Orders";
@@ -57,7 +55,6 @@ export default function App() {
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/confirmation/:id" element={<OrderConfirmation />} />
-            <Route path="/prototype/try-on" element={<PrototypeTryOn />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -68,7 +65,6 @@ export default function App() {
             <Route path="/admin/orders" element={<AdminOrders />} />
           </Route>
           <Route element={<CameraLayout />}>
-            <Route path="/try-on/live" element={<LiveTryOn />} />
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

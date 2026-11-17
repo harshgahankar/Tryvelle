@@ -12,6 +12,7 @@ from app.api.v1.health import router as health_router
 from app.api.v1.me import router as me_router
 from app.api.v1.orders import cart_router, orders_router
 from app.api.v1.payments import router as payments_router
+from app.api.v1.tryon import router as tryon_router
 from app.core.config import get_settings
 from app.core.rate_limit import RateLimitMiddleware
 
@@ -50,6 +51,7 @@ app.include_router(cart_router, prefix="/api/v1", tags=["cart"])
 app.include_router(orders_router, prefix="/api/v1", tags=["orders"])
 app.include_router(payments_router, prefix="/api/v1", tags=["payments"])
 app.include_router(admin_router, prefix="/api/v1", tags=["admin"])
+app.include_router(tryon_router, prefix="/api/v1", tags=["try-on"])
 
 import os  # noqa: E402
 

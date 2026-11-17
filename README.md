@@ -1,4 +1,4 @@
-# Tryvelle — clothing store with live camera try-on (demo, no payments)
+# Tryvelle — clothing store with AI photo try-on (demo, no payments)
 
 React + Vite storefront (`frontend/`) with on-device camera preview, FastAPI +
 PostgreSQL API (`backend/`). First release is a **visual style preview + demo
@@ -52,6 +52,6 @@ cd frontend && npm test && npm run build                # 16 tests + build
 
 - `backend/README.md` — API setup; `backend/docs/API.md` — endpoint table.
 - `LICENSES.md` — recorded package/model/asset licenses.
-- `RELEASE_CHECKLIST.md` — deployment gate; `DEVICE_MATRIX.md` — camera test log.
-- `frontend/MILESTONE1.md`, `backend/MILESTONE*.md` — per-milestone notes.
+- `docs/RELEASE_CHECKLIST.md` — deployment gate; `docs/DEVICE_MATRIX.md` — camera test log.
+- `docs/milestones/` — per-milestone notes. `ml/` — the try-on model (see `ml/README.md`).
 - Local-only (never pushed): `documents/` spec pack, `frontend.html` prototype.
