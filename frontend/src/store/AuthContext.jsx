@@ -34,6 +34,7 @@ export function AuthProvider({ children }) {
     try {
       const d = await request("/auth/me");
       setUser(d.user);
+      setCsrf(d.csrf_token ?? null);
     } catch {
       setUser(null);
     } finally {

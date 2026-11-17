@@ -61,11 +61,17 @@ def logout(response: Response, db: Session = Depends(get_db),
 
 
 @router.get("/auth/me")
-def me(user=Depends(get_current_user)):
+def me(user=Depends(get_current_user), session: str | None = Cookie(default=None),
+       db: Session = Depends(get_db)):
     if isinstance(user, dict):
         return error(user["code"], user["message"], user["status"])
-    # Fresh CSRF token per profile read (old ones stay valid until expiry).
-    return {"user": user_out(user)}
+    # Issue a fresh CSRF token so a reloaded page (which lost the login-time token)
+    # can still make changes. Only the hash is stored, so the old one is replaced.
+    row = db.query(SessionRow).filter_by(token_hash=hash_token(session)).one()
+    csrf = new_token()
+    row.csrf_token_hash = hash_token(csrf)
+    db.commit()
+    return {"user": user_out(user), "csrf_token": csrf}
 
 
 @router.post("/auth/forgot-password")

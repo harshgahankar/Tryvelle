@@ -70,9 +70,10 @@ export default function Header() {
         <div className="flex items-center gap-1 ml-auto md:ml-0">
           {user ? (
             <div className="relative group">
-              <IconLink to="/account/orders" icon="person" label={user.name?.split(" ")[0] || "Profile"} />
+              <IconLink to="/account" icon="person" label={user.name?.split(" ")[0] || "Profile"} />
               <div className="absolute right-0 top-full hidden group-hover:block group-focus-within:block pt-2">
                 <div className="w-48 bg-white shadow-lg rounded-md border border-border py-2 text-[14px]">
+                  <Link to="/account" className="block px-4 py-2 hover:bg-surface-container-low">My account</Link>
                   <Link to="/account/orders" className="block px-4 py-2 hover:bg-surface-container-low">Orders</Link>
                   <Link to="/wishlist" className="block px-4 py-2 hover:bg-surface-container-low">Wishlist</Link>
                   {user.role === "admin" && <Link to="/admin/products" className="block px-4 py-2 hover:bg-surface-container-low">Admin</Link>}

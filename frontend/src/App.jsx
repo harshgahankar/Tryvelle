@@ -14,6 +14,7 @@ import OrderConfirmation from "./pages/OrderConfirmation";
 import { Login, Register, ForgotPassword, ResetPassword } from "./pages/Auth";
 import Wishlist from "./pages/Wishlist";
 import Orders from "./pages/Orders";
+import Account from "./pages/Account";
 import AdminProducts from "./pages/AdminProducts";
 import AdminOrders from "./pages/AdminOrders";
 
@@ -60,6 +61,7 @@ export default function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/account" element={<Account />} />
             <Route path="/account/orders" element={<Orders />} />
             <Route path="/admin/products" element={<AdminProducts />} />
             <Route path="/admin/orders" element={<AdminOrders />} />
