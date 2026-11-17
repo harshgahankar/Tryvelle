@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Cookie, Depends, Response
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.api.errors import error
 from app.core.deps import create_session, get_current_user, set_session_cookie, SESSION_COOKIE
 from app.core.security import hash_password, hash_token, new_token, verify_password
@@ -53,7 +54,9 @@ def logout(response: Response, db: Session = Depends(get_db),
         if row is not None:
             row.revoked_at = datetime.now(timezone.utc)
             db.commit()
-    response.delete_cookie(SESSION_COOKIE, path="/")
+    s = get_settings()
+    response.delete_cookie(SESSION_COOKIE, path="/", secure=s.COOKIE_SECURE,
+                           samesite="none" if s.COOKIE_SECURE else "lax", httponly=True)
     return {"ok": True}
 
 

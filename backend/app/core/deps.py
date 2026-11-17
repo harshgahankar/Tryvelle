@@ -36,7 +36,9 @@ def set_session_cookie(response, raw: str) -> None:
     settings = get_settings()
     response.set_cookie(
         SESSION_COOKIE, raw, httponly=True, secure=settings.COOKIE_SECURE,
-        samesite="lax", path="/", max_age=settings.SESSION_TTL_SECONDS,
+        # Cross-site in production (vercel.app -> onrender.com) needs SameSite=None + Secure.
+        samesite="none" if settings.COOKIE_SECURE else "lax",
+        path="/", max_age=settings.SESSION_TTL_SECONDS,
     )
 
 
