@@ -22,7 +22,7 @@ from catvton_mini import BASE, build_inputs, cat_w, empty_text_embedding, encode
 from dataset import H, W, to_tensor
 
 ROOT = Path(__file__).resolve().parent
-POSE_MODEL = ROOT.parent / "frontend" / "public" / "vendor" / "models" / "pose_landmarker_lite.task"
+POSE_MODEL = ROOT / "models" / "pose_landmarker_lite.task"
 
 
 def fit(img: Image.Image, bg=(255, 255, 255)) -> tuple[Image.Image, tuple]:

@@ -12,7 +12,8 @@ class Settings(BaseSettings):
     STORAGE_BACKEND: str = "local"
     STORAGE_LOCAL_DIR: str = "./media"
     MEDIA_BASE_URL: str = "http://localhost:8000"  # absolute media URLs; frontend runs on another origin
-    TRYON_MODEL_URL: str = "http://127.0.0.1:8001"  # ml/serve.py (photo try-on model)
+    TRYON_MODEL_URL: str = "http://127.0.0.1:8001"  # ml/serve.py locally, the Modal URL in production
+    TRYON_SECRET: str = ""  # shared with the model service (X-Tryon-Secret); empty = not checked
     DEMO_MODE: bool = True
     SETUP_ADMIN_EMAIL: str = ""
     SETUP_ADMIN_PASSWORD: str = ""

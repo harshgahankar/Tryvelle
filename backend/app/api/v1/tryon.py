@@ -1,5 +1,5 @@
 """Photo try-on: the shopper uploads (or snaps) a photo, we run the garment's
-published try-on asset through the local mini-CatVTON service (ml/serve.py)
+published try-on asset through the mini-CatVTON service (ml/serve.py locally, ml/modal_app.py in the cloud)
 and return the generated image. The photo is never stored."""
 import uuid
 from pathlib import Path, PurePosixPath
@@ -67,12 +67,20 @@ async def try_on_photo(
     if len(data) > MAX_BYTES:
         return error("PHOTO_TOO_LARGE", "Photos must be under 15 MB.", 413)
 
-    url = get_settings().TRYON_MODEL_URL.rstrip("/") + "/tryon"
+    settings = get_settings()
+    garment_path = Path(settings.STORAGE_LOCAL_DIR) / garment_key
+    if not garment_path.is_file():
+        return error("TRY_ON_UNAVAILABLE", "The garment image for try-on is missing on the server.", 404)
+    url = settings.TRYON_MODEL_URL.rstrip("/") + "/tryon"
+    files = {"person": (photo.filename or "photo.jpg", data, photo.content_type),
+             "garment": (garment_path.name, garment_path.read_bytes(), "image/png")}
+    headers = {"X-Tryon-Secret": settings.TRYON_SECRET} if settings.TRYON_SECRET else {}
     try:
+        # 300 s covers a cloud GPU cold start (~30-60 s) plus the generation itself.
         async with httpx.AsyncClient(timeout=300) as client:
-            r = await client.post(url, params={"garment": garment_key}, content=data)
+            r = await client.post(url, files=files, headers=headers)
     except httpx.HTTPError:
-        return error("TRY_ON_OFFLINE", "The try-on model isn't running. Start ml/serve.py and retry.", 503)
+        return error("TRY_ON_OFFLINE", "The try-on model isn't reachable right now. Please try again.", 503)
     if r.status_code == 422:
         return error("NO_PERSON", "We couldn't find a person in that photo. Use a front-facing photo "
                      "with your shoulders and hips visible.", 422)

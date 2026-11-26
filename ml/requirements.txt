@@ -8,3 +8,6 @@ pillow>=10
 numpy>=1.26
 tqdm
 mediapipe>=0.10.14   # only needed for infer.py auto-mask
+fastapi[standard]>=0.115
+python-multipart
+modal   # only for deploying to Modal (modal_app.py)
