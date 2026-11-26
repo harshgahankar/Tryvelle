@@ -1,5 +1,9 @@
 # Tryvelle — clothing store with AI photo try-on (demo, no payments)
 
+[![Watch the Tryvelle demo (21s)](docs/media/tryvelle-demo.jpg)](docs/media/tryvelle-demo.mp4)
+
+▶ [Watch the 21-second demo](docs/media/tryvelle-demo.mp4)
+
 React + Vite storefront (`frontend/`) with on-device camera preview, FastAPI +
 PostgreSQL API (`backend/`). First release is a **visual style preview + demo
 ordering**: no fit measurement, no cloth simulation, no payment collection.
